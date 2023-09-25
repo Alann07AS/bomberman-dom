@@ -1,0 +1,1 @@
+// salle d'attente pour rejoindre les slote de jeu

@@ -1,0 +1,1 @@
+//le panneau de setings pour regler le son, les touches ?, la luminositer, reset data si bug
