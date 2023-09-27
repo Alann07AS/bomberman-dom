@@ -1,16 +1,64 @@
-body, html {
+body,
+html {
     margin: 0;
     padding: 0;
 }
 
+body {
+    background-image: url("./bombs.jpg");
+    background-size: 12%;
+}
 
-/* Login part */
-#login_div {
-    height: 100vh;
-    width: 100vw;
-    z-index: 1;
-    background: rgba(93, 255, 24, 0.609);
-    position:absolute;
-    top: 0;
-    left: 0;
+.logo {
+    position: absolute;
+    top: 3%;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+.menu {
+    min-height: 50vh;
+    min-width: 33vw;
+    height: auto;
+    width: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.696);
+    border-radius: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-list{
+    list-style: none;
+    padding: 0;
+}
+
+.menu-list > li {
+    padding: 20px;
+}
+
+
+/* ROOM */
+
+.slot {
+    height: 200px;
+    width: 200px;
+    background-size: contain;
+}
+
+#div_slot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.696);
+    border-radius: 30px;    
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
 }

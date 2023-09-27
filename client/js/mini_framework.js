@@ -111,7 +111,7 @@ const mn =  {
         get: function (key) {
             return index(data, key);
         },
-        update: function (key, fValue) {
+        update: function (key, fValue = v=>v) {
             mn.data.set(key, fValue(mn.data.get(key)))
             const onKey = _updaters.get(key);
             if (onKey) {
