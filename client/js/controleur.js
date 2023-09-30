@@ -40,11 +40,14 @@ class InputManager {
 
     //the connected gamepad
     static #gamepads = {}
+    static get gamepads() {
+        return this.#gamepads
+    }
     static #gamepadsLastState = {}
 
     static GetStateGP(gamepad_id, iBt) {
         switch (iBt) {
-            case "up":  return this.#gamepads[gamepad_id].axes[7] === -1
+            case "up": return this.#gamepads[gamepad_id].axes[7] === -1
             case "down": return this.#gamepads[gamepad_id].axes[7] === 1
             case "left": return this.#gamepads[gamepad_id].axes[6] === -1
             case "right": return this.#gamepads[gamepad_id].axes[6] === 1
@@ -53,7 +56,7 @@ class InputManager {
     }
     static GetLastStateGP(gamepad_id, iBt) {
         switch (iBt) {
-            case "up":  return this.#gamepadsLastState[gamepad_id].axes[7] === -1
+            case "up": return this.#gamepadsLastState[gamepad_id].axes[7] === -1
             case "down": return this.#gamepadsLastState[gamepad_id].axes[7] === 1
             case "left": return this.#gamepadsLastState[gamepad_id].axes[6] === -1
             case "right": return this.#gamepadsLastState[gamepad_id].axes[6] === 1
@@ -62,19 +65,17 @@ class InputManager {
     }
 
     static LastStateGP(gamepad_id, iBt, val) {
+        //pas utiliser ? mise a jour inutile pour gamepad
         switch (iBt) {
-            case "up":  this.#gamepadsLastState[gamepad_id].axes[7] ===  val
-            return
-            case "down": this.#gamepadsLastState[gamepad_id].axes[7] === val
-            return
-            case "left": this.#gamepadsLastState[gamepad_id].axes[6] === val
-            return
-            case "right": this.#gamepadsLastState[gamepad_id].axes[6] === val
-            return
+            case "up": this.#gamepadsLastState[gamepad_id].axes[7] = val; return
+            case "down": this.#gamepadsLastState[gamepad_id].axes[7] = val; return
+            case "left": this.#gamepadsLastState[gamepad_id].axes[6] = val; return
+            case "right": this.#gamepadsLastState[gamepad_id].axes[6] = val; return
             default: this.#gamepadsLastState[gamepad_id].buttons[iBt].pressed = val
         }
     }
 
+    static #isListen = false
     static #listenGamepads = function () {
         const listener = () => {
             for (const key in this.#gamepads) {
@@ -82,7 +83,6 @@ class InputManager {
                 const gamepad = this.#gamepads[key];
                 /** @type {Gamepad}*/
                 const gamepadLastState = this.#gamepadsLastState[key];
-
                 if (gamepad.timestamp != gamepadLastState.timestamp) {
                     gamepad.buttons.forEach((bt, i) => {
                         gamepadLastState.buttons[i].pressed = bt.pressed
@@ -92,19 +92,24 @@ class InputManager {
                     }
                 }
             }
-            requestAnimationFrame(listener)
+            if (this.#isListen) {
+                requestAnimationFrame(listener)
+            }
         }
-        requestAnimationFrame(listener)
+        this.#isListen = false
+        setTimeout(() => { this.#isListen = true; requestAnimationFrame(listener) }, 100)
+
     }
     //gamepad object init
     static initGamepadListener = () => {
+        this.#listenGamepads()
         window.addEventListener("gamepadconnected", (e) => {
-            console.log(e.gamepad);
             this.#gamepads[e.gamepad.id] = e.gamepad
             this.#gamepadsLastState[e.gamepad.id] = deepCopy(e.gamepad)
-            console.log(this.#gamepadsLastState[e.gamepad.id]);
             if (Object.keys(this.#gamepads).length !== 1) return
+            // new Controleur("{PS4}", ps4_keybind, e.gamepad.id)
             this.#listenGamepads()
+            console.log(this.#gamepads);
         })
         window.addEventListener("gamepaddisconnected", (e) => {
             delete this.#gamepads[e.gamepad.id]
@@ -115,9 +120,10 @@ class InputManager {
     static #selectedControleur = "keyboard"
     static set selectedControleur(val) {
         if (val === "keyboard" || this.#gamepads[val] !== undefined) {
-            this.#selectedControleur =  val
+            this.#selectedControleur = val
         }
     }
+    static get selectedControleur() { return this.#selectedControleur }
 
     // InputManager Methode
     static whileKeyDown(key, func, ...param) {
@@ -138,9 +144,11 @@ class InputManager {
         if (this.#selectedControleur === "keyboard") {
             if (this.#key[key] && !this.#keyLastState[key]) { func(...param); this.#keyLastState[key] = true }
         } else {
+            // console.log("HELLO", this.GetStateGP(this.#selectedControleur, key)
+            // , !this.GetLastStateGP(this.#selectedControleur, key));
             if (this.GetStateGP(this.#selectedControleur, key)
                 && !this.GetLastStateGP(this.#selectedControleur, key)) {
-                func(...param); this.LastStateGP(this.#selectedControleur, key, true)
+                func(...param);// this.LastStateGP(this.#selectedControleur, key, true)
             }
         }
     }
@@ -150,7 +158,7 @@ class InputManager {
         } else {
             if (!this.GetStateGP(this.#selectedControleur, key)
                 && this.GetLastStateGP(this.#selectedControleur, key)) {
-                func(...param); this.LastStateGP(this.#selectedControleur, key, false)
+                func(...param);// this.LastStateGP(this.#selectedControleur, key, false)
             }
         }
     }
@@ -158,37 +166,36 @@ class InputManager {
 
 InputManager.initGamepadListener()
 InputManager.initKeyBoardListener()
-// const test = () => {
-//     InputManager.selectedControleur = "054c-09cc-Wireless Controller"
-//     InputManager.onKeyDown(0, () => { console.log("La Mannette: OnKeyDown") })
-//     InputManager.onKeyUp(0, () => { console.log("La Mannette: OnKeyUp") })
+const test = () => {
+    InputManager.selectedControleur = "054c-09cc-Wireless Controller"
+    InputManager.onKeyDown(0, () => { console.log("La Mannette: OnKeyDown") })
+    InputManager.onKeyUp(0, () => { console.log("La Mannette: OnKeyUp") })
 
-//     InputManager.selectedControleur = "keyboard"
-//     InputManager.onKeyDown("Space", () => { console.log("Le Clavier ZQSD: OnKeyDown") })
-//     InputManager.onKeyUp("Space", () => { console.log("Le Clavier ZQSD: OnKeyUp") })
+    // InputManager.selectedControleur = "keyboard"
+    // InputManager.onKeyDown("Space", () => { console.log("Le Clavier ZQSD: OnKeyDown") })
+    // InputManager.onKeyUp("Space", () => { console.log("Le Clavier ZQSD: OnKeyUp") })
+    // 
+    // InputManager.onKeyDown(InputManager.UpArrow, () => { console.log("Le Clavier fleche: OnKeyDown") })
+    // InputManager.onKeyUp(InputManager.UpArrow, () => { console.log("Le Clavier fleche: OnKeyUp") })
 
-//     InputManager.onKeyDown(InputManager.UpArrow, () => { console.log("Le Clavier fleche: OnKeyDown") })
-//     InputManager.onKeyUp(InputManager.UpArrow, () => { console.log("Le Clavier fleche: OnKeyUp") })
-
-//     // InputManager.whileKeyDown(0, () => { console.log("WhilleKeyDown") })
-//     // InputManager.whileKeyUp(0, () => { console.log("WhilleKeyup") })
-//     requestAnimationFrame(test)
-// }
-// test()
+    // InputManager.whileKeyDown(0, () => { console.log("WhilleKeyDown") })
+    // InputManager.whileKeyUp(0, () => { console.log("WhilleKeyup") })
+    requestAnimationFrame(test)
+}
+// setTimeout(test, 2000)
 
 class Controleur {
     constructor(data, keybind, id = "keyboard") {
         this.id = id
         this.data = data
         this.keybind = keybind
-
-        const listener = ()=>{
+        const listener = () => {
             if (this.id === "keyboard") {
                 InputManager.selectedControleur = "keyboard"
             } else {
                 InputManager.selectedControleur = this.id
             }
-            this.keybind.forEach((/**@type {keyBind}*/key)=>{
+            this.keybind.forEach((/**@type {keyBind}*/key) => {
                 InputManager[key.inputType](key.key, key.func, this.#data)
             })
             requestAnimationFrame(listener)
@@ -228,14 +235,16 @@ class keyBind {
 }
 
 // basique actions
-const up = function (data) {console.log(data + "up");} //Player.move.up           //à définir
-const down = function (data) {console.log(data + "down");} //Player.move.down       //à définir
-const left = function (data) {console.log(data + "left");} //Player.move.left       //à définir
-const right = function (data) {console.log(data + "right");} //Player.move.right     //à définir
-const pose = function (data) {console.log(data + "pose");} //Player.move.dropbomb  //à définir    
+console.log(Player.prototype.move.up.toString());
+// const join = Player.move.join //function (data) { console.log(data + "JoinSlot"); } //Player.move.up           //à définir
+const up = (data)=>{if (!data) return; data.move.up()} //function (data) { console.log(data + "up"); } //Player.move.up           //à définir
+const down = (data)=>{if (!data) return; data.move.down()} //function (data) { console.log(data + "down"); } //Player.move.down       //à définir
+const left = (data)=>{if (!data) return; data.move.left()} //function (data) { console.log(data + "left"); } //Player.move.left       //à définir
+const right = (data)=>{if (!data) return; data.move.right()} //function (data) { console.log(data + "right"); } //Player.move.right     //à définir
+const pose = (data)=>{if (!data) return; data.move.pose()} //function (data) { console.log(data + "pose"); } //Player.move.dropbomb  //à définir    
 
 /**@type {Array<Controleur>} */
-const constructors = [];
+const controlors = [];
 
 // AZERTY/QUERTY Keyboard controleur
 
@@ -247,32 +256,38 @@ const keyboard_keybind = [
     new keyBind("Space", "onKeyDown", pose),
 ];
 
-const keyboard = new Controleur("{KEYBOARD}", keyboard_keybind, )
-
-
-constructors.push(keyboard)
-
-
-
 // Arrow Keyboard controleur
 
-// const arrow = new Controleur()
+const keyboard_arrow_keybind = [
+    new keyBind("ArrowUp", "onKeyDown", up),
+    new keyBind("ArrowLeft", "onKeyDown", left),
+    new keyBind("ArrowDown", "onKeyDown", down),
+    new keyBind("ArrowRight", "onKeyDown", right),
+    new keyBind("ShiftRight", "onKeyDown", pose),
+];
 
-// arrow.keybind = {
-//     ArrowUp: up,
-//     ArrowDown: down,
-//     ArrowLeft: left,
-//     ArrowRight: right,
-//     ShiftRight: pose,
-// }
+const zqsds = keyboard_keybind.map(v=>v.key)
 
-// constructors.push(arrow)
+window.addEventListener("keydown", function f(e) {
+    if (zqsds.find(v=>v===e.code)) {
+        const keyboard = new Controleur(undefined, keyboard_keybind,)
+        game.getFirstFreeSlot().bind(keyboard)
+        window.removeEventListener("keydown", f)
+    }
+})
 
-
+const arrows = keyboard_arrow_keybind.map(v=>v.key)
+window.addEventListener("keydown", function f(e) {
+    if (arrows.find(v=>v===e.code)) {
+        const arrow = new Controleur(undefined, keyboard_arrow_keybind)
+        game.getFirstFreeSlot().bind(arrow)
+        window.removeEventListener("keydown", f)
+    }
+})
 
 // PS4 controleur
 
-ps4_keybind = [
+const ps4_keybind = [
     new keyBind("up", "onKeyDown", up),
     new keyBind("left", "onKeyDown", left),
     new keyBind("down", "onKeyDown", down),
@@ -280,11 +295,10 @@ ps4_keybind = [
     new keyBind(0, "onKeyDown", pose),
 ];
 
-const ps4 = new Controleur("{PS4}", ps4_keybind, "054c-09cc-Wireless Controller")
-
-
-constructors.push(ps4)
-
+window.addEventListener("gamepadconnected", (e) => {
+    const ps4 = new Controleur(undefined, ps4_keybind, e.gamepad.id)//"054c-09cc-Wireless Controller")
+    game.getFirstFreeSlot().bind(ps4)
+})
 
 
 

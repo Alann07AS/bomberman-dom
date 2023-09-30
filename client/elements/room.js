@@ -5,7 +5,10 @@ mn.insert(document.currentScript, (updater, old_element_updater)=>{
     mn.data.bind("game.status", updater)
     mn.data.bind("slots_change", old_element_updater((/**@type {Array<HTMLElement>}*/old_el)=>{
         game.slots.forEach((j, i)=>{
-            old_el[0].children[i].style.backgroundImage = `url("${j.info.image}")`
+            /**@type {HTMLElement} */
+            const el = old_el[0]
+            el.children[i].style.backgroundImage = `url("${j.info.image}")`
+            el.children[i].style.transform = `translate(${j.position.x}px, ${j.position.y}px)`
             // old_el[0].children[i].src = j.info.image
         })
     }))
@@ -22,7 +25,7 @@ mn.insert(document.currentScript, (updater, old_element_updater)=>{
                     {
                         class: "slot",
                         // src: player.status.ready?player.info.image:"./style/default_user_void.png",
-                        style: `background-image: url("${player.status.ready?player.info.image:"./style/default_user_void.png"}")`,
+                        style: `background-image: url("${player.status.ready?player.info.image:"./style/default_user_void.png"}");translate("${player.position.x}px, ${player.position.y}px")`,
                         onclick: (e)=> {
                             player.bind(e)
                         }
