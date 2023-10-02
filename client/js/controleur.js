@@ -75,15 +75,18 @@ class InputManager {
         }
     }
 
+
     static #isListen = false
     static #listenGamepads = function () {
         const listener = () => {
+            // console.log(this.#gamepads);
             for (const key in this.#gamepads) {
                 /** @type {Gamepad}*/
                 const gamepad = this.#gamepads[key];
                 /** @type {Gamepad}*/
                 const gamepadLastState = this.#gamepadsLastState[key];
-                if (gamepad.timestamp != gamepadLastState.timestamp) {
+                if (gamepad.timestamp !== gamepadLastState.timestamp) {
+                    gamepadLastState.timestamp = gamepad.timestamp
                     gamepad.buttons.forEach((bt, i) => {
                         gamepadLastState.buttons[i].pressed = bt.pressed
                     })
@@ -102,11 +105,10 @@ class InputManager {
     }
     //gamepad object init
     static initGamepadListener = () => {
-        this.#listenGamepads()
         window.addEventListener("gamepadconnected", (e) => {
             this.#gamepads[e.gamepad.id] = e.gamepad
             this.#gamepadsLastState[e.gamepad.id] = deepCopy(e.gamepad)
-            if (Object.keys(this.#gamepads).length !== 1) return
+            if (Object.keys(this.#gamepads).length < 1) return
             // new Controleur("{PS4}", ps4_keybind, e.gamepad.id)
             this.#listenGamepads()
             console.log(this.#gamepads);
@@ -235,7 +237,6 @@ class keyBind {
 }
 
 // basique actions
-console.log(Player.prototype.move.up.toString());
 // const join = Player.move.join //function (data) { console.log(data + "JoinSlot"); } //Player.move.up           //à définir
 const up = (data)=>{if (!data) return; data.move.up()} //function (data) { console.log(data + "up"); } //Player.move.up           //à définir
 const down = (data)=>{if (!data) return; data.move.down()} //function (data) { console.log(data + "down"); } //Player.move.down       //à définir
@@ -249,20 +250,20 @@ const controlors = [];
 // AZERTY/QUERTY Keyboard controleur
 
 const keyboard_keybind = [
-    new keyBind("KeyW", "onKeyDown", up),
-    new keyBind("KeyA", "onKeyDown", left),
-    new keyBind("KeyS", "onKeyDown", down),
-    new keyBind("KeyD", "onKeyDown", right),
+    new keyBind("KeyW", "whileKeyDown", up),
+    new keyBind("KeyA", "whileKeyDown", left),
+    new keyBind("KeyS", "whileKeyDown", down),
+    new keyBind("KeyD", "whileKeyDown", right),
     new keyBind("Space", "onKeyDown", pose),
 ];
 
 // Arrow Keyboard controleur
 
 const keyboard_arrow_keybind = [
-    new keyBind("ArrowUp", "onKeyDown", up),
-    new keyBind("ArrowLeft", "onKeyDown", left),
-    new keyBind("ArrowDown", "onKeyDown", down),
-    new keyBind("ArrowRight", "onKeyDown", right),
+    new keyBind("ArrowUp", "whileKeyDown", up),
+    new keyBind("ArrowLeft", "whileKeyDown", left),
+    new keyBind("ArrowDown", "whileKeyDown", down),
+    new keyBind("ArrowRight", "whileKeyDown", right),
     new keyBind("ShiftRight", "onKeyDown", pose),
 ];
 
@@ -288,15 +289,16 @@ window.addEventListener("keydown", function f(e) {
 // PS4 controleur
 
 const ps4_keybind = [
-    new keyBind("up", "onKeyDown", up),
-    new keyBind("left", "onKeyDown", left),
-    new keyBind("down", "onKeyDown", down),
-    new keyBind("right", "onKeyDown", right),
+    new keyBind("up", "whileKeyDown", up),
+    new keyBind("left", "whileKeyDown", left),
+    new keyBind("down", "whileKeyDown", down),
+    new keyBind("right", "whileKeyDown", right),
     new keyBind(0, "onKeyDown", pose),
 ];
 
 window.addEventListener("gamepadconnected", (e) => {
     const ps4 = new Controleur(undefined, ps4_keybind, e.gamepad.id)//"054c-09cc-Wireless Controller")
+    console.log(ps4);
     game.getFirstFreeSlot().bind(ps4)
 })
 

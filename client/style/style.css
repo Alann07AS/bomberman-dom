@@ -42,23 +42,43 @@ body {
 }
 
 
-/* ROOM */
 
+
+/* GAME */
 .slot {
-    height: 200px;
-    width: 200px;
+    position: absolute;
+    height: 50px;
+    width: 50px;
     background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: 0.1s;
 }
 
-#div_slot {
+#game {
+    background-color: aqua;
+
+}
+
+/* background */
+.bg {
+    background-image: url("./sprites/green_bg.png");
+    height: 650px;
+    width: 650px;
     position: absolute;
+    transform: translate(-50%, -50%);
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.696);
-    border-radius: 30px;    
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+}
+
+/* wall */
+.hardwall {
+    background-image: url("./sprites/hardwall.png");
+    background-size: contain;
+    position: absolute;
+    height: 50px;
+    width: 50px;
+}
+.softwall {
+    background-image: url("");
 }
