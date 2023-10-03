@@ -7,7 +7,6 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
         game.slots.forEach((player, i) => {
             /**@type {HTMLElement} */
             const el = old_el
-            el[i].classList.toggle("transition", player.isAline)
             el[i].style.backgroundImage = `url("${player.status.ready ? player.info.image : "./style/default_user_void.png"}")`
             el[i].style.transform = `translate(${player.position.x}px, ${player.position.y}px)`
             // old_el[0].children[i].src = j.info.image

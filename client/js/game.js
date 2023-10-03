@@ -80,7 +80,24 @@ class Player {
 
     static height = 50
     static width = 50
-    static moveAsist = 2
+    #moveAsist = {
+        x: 0,
+        y: 0
+    }
+    get moveAsistX() {
+        return this.#moveAsist.x
+    }
+    get moveAsistY() {
+        return this.#moveAsist.y
+    }
+    set moveAsistX(x) {
+        this.#moveAsist.y = 0
+        this.#moveAsist.x = x
+    }
+    set moveAsistY(y) {
+        this.#moveAsist.x = 0
+        this.#moveAsist.y = y
+    }
 
     /**@type {Controleur} */
     controleur
@@ -92,45 +109,52 @@ class Player {
         name: "",
         image: "./style/default_user_void.png",
     }
+    // #isMoving
     speed = 1.4
     position = { x: 0, y: 0 }
     get move() {
         const th = this
-        
         return class {
             static left = () => {
                 th.position.x -= th.speed
+                th.moveAsistY = 10
                 if (th.checkColision) {
                     th.position.x += th.speed
                 } else {
-                    th.position.y = Math.round((th.position.y / Wall.size)) * Wall.size
+                    th.position.y += ((Math.round((th.position.y / Wall.size)) * Wall.size)-th.position.y)/10
                     mn.data.update("slots_change", v => v)
                 }
             }
             static right = () => {
                 th.position.x += th.speed
+                th.moveAsistY = 10
                 if (th.checkColision) {
                     th.position.x -= th.speed
                 } else {
-                    th.position.y = Math.round((th.position.y / Wall.size)) * Wall.size
+                    th.position.y += ((Math.round((th.position.y / Wall.size)) * Wall.size)-th.position.y)/10
+                    // th.position.y = Math.round((th.position.y / Wall.size)) * Wall.size
                     mn.data.update("slots_change", v => v)
                 }
             }
             static up = () => {
                 th.position.y -= th.speed
+                th.moveAsistX = 10
                 if (th.checkColision) {
                     th.position.y += th.speed
                 } else {
-                    th.position.x = Math.round((th.position.x / Wall.size)) * Wall.size
+                    // th.position.x = Math.round((th.position.x / Wall.size)) * Wall.size
+                    th.position.x += ((Math.round((th.position.x / Wall.size)) * Wall.size)-th.position.x)/10
                     mn.data.update("slots_change", v => v)
                 }
             }
             static down = () => {
                 th.position.y += th.speed
+                th.moveAsistX = 10
                 if (th.checkColision) {
                     th.position.y -= th.speed
                 } else {
-                    th.position.x = Math.round((th.position.x / Wall.size)) * Wall.size
+                    th.position.x += ((Math.round((th.position.x / Wall.size)) * Wall.size)-th.position.x)/10
+                    // th.position.x = Math.round((th.position.x / Wall.size)) * Wall.size
                     mn.data.update("slots_change", v => v)
                 }
             }
@@ -146,16 +170,29 @@ class Player {
         const playerPos = this.playerCenter
         const wallPos = obj.wallCenter
         return {
-            x: Math.abs(playerPos.x - wallPos.x) - Player.width / 2 - Wall.size / 2 ,
-            y: Math.abs(playerPos.y - wallPos.y) - Player.height / 2 - Wall.size / 2 
+            x: Math.abs(playerPos.x - wallPos.x) - Player.width / 2 - Wall.size / 2,
+            y: Math.abs(playerPos.y - wallPos.y) - Player.height / 2 - Wall.size / 2
         }
     }
 
     get checkColision() {
-        return wall_matrix.some(line => {
-            return line.some(wall=>{
+
+        for (const lineKey in wall_matrix) {
+            const line = wall_matrix[lineKey];
+            for (const wallKey in line) {
+                const wall = line[wallKey];
                 const playerDist = this.objDist(wall)
-                return playerDist.x < 0-Player.moveAsist && playerDist.y < 0-Player.moveAsist
+                if (playerDist.x < -this.moveAsistX && playerDist.y < -this.moveAsistY) {
+                    return true
+                }
+            }
+        }
+        return false
+        return wall_matrix.some(line => {
+            return line.some(wall => {
+                const playerDist = this.objDist(wall)
+                console.log(this.#moveAsist);
+                return
             })
         })
     }

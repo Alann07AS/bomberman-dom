@@ -32,12 +32,12 @@ body {
     align-items: center;
 }
 
-.menu-list{
+.menu-list {
     list-style: none;
     padding: 0;
 }
 
-.menu-list > li {
+.menu-list>li {
     padding: 20px;
 }
 
@@ -52,7 +52,7 @@ body {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    transition: 0.1s;
+    /* transition: 0.1s; */
 }
 
 #game {
@@ -79,6 +79,7 @@ body {
     height: 50px;
     width: 50px;
 }
+
 .softwall {
     background-image: url("");
 }
