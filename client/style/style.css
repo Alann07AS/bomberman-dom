@@ -52,6 +52,7 @@ body {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    z-index: 1;
     /* transition: 0.1s; */
 }
 
@@ -82,4 +83,17 @@ body {
 
 .softwall {
     background-image: url("");
+}
+
+/* bomb */
+
+.bomb {
+    height: 50px;
+    width: 50px;
+    background-image: url("./sprites/bomb.png");
+    background-size: contain;
+    position: absolute;
+}
+.invisible {
+    display: none;
 }

@@ -1,4 +1,4 @@
-// salle d'attente pour rejoindre les slote de jeu
+// les joueurs
 
 
 mn.insert(document.currentScript, (updater, old_element_updater) => {

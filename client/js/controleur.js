@@ -242,7 +242,7 @@ const up = (data)=>{if (!data) return; data.move.up()} //function (data) { conso
 const down = (data)=>{if (!data) return; data.move.down()} //function (data) { console.log(data + "down"); } //Player.move.down       //à définir
 const left = (data)=>{if (!data) return; data.move.left()} //function (data) { console.log(data + "left"); } //Player.move.left       //à définir
 const right = (data)=>{if (!data) return; data.move.right()} //function (data) { console.log(data + "right"); } //Player.move.right     //à définir
-const pose = (data)=>{if (!data) return; data.move.pose()} //function (data) { console.log(data + "pose"); } //Player.move.dropbomb  //à définir    
+const pose = (data)=>{if (!data) return; data.poseBomb()} //function (data) { console.log(data + "pose"); } //Player.move.dropbomb  //à définir    
 
 /**@type {Array<Controleur>} */
 const controlors = [];
