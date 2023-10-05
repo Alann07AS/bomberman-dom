@@ -16,17 +16,13 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                     class: "bg",
                 },
                 //WALLS
-                ...wall_matrix.map(ligne => {
-                    return ligne.map(wall => {
-                        return mn.element.create(
-                            "div",
-                            {
-                                class: wall.type,
-                                style: `transform: translate(${wall.position.x}px, ${wall.position.y}px);`
-                            }
-                        )
-                    })
-                }).flat(),
+                mn.element.create(
+                    "script",
+                    {
+                        src: "./elements/wall.js",
+                    }
+                )
+                ,
                 mn.element.create(
                     "script",
                     {

@@ -34,6 +34,7 @@ let wall_matrix = [
 // ]
 
 class Wall {
+    size = 50
     static size = 50
     constructor(val, i_line, i_col) {
         this.type = (val === 1 ? "hardwall" : val === 2 ? "softwall" : "grass")
@@ -43,7 +44,7 @@ class Wall {
         }
     }
 
-    get wallCenter() {
+    get center() {
         return { x: this.position.x + Wall.size / 2, y: this.position.y + Wall.size / 2 }
     }
 }
@@ -63,10 +64,11 @@ class Bomb {
 
     }
     sprite = "./style/sprites/bomb.png"
-    duration = 5 //second
+    duration = 3 //second
     active_timestamp
     active = false
     position = { x: 0, y: 0 }
+    size = 49
     static size = 49
 
     static getFirstFreeBomb(bombs) {
@@ -75,19 +77,38 @@ class Bomb {
         }) || undefined
     }
 
-    get bombCenter() {
+    get center() {
         return { x: this.position.x + Wall.size / 2, y: this.position.y + Wall.size / 2 }
     }
 
-    pose(position) {
+    pose(player) {
         this.active_timestamp = Date.now()
         this.position = {
-            x: Math.round((position.x / Wall.size)) * Wall.size,
-            y: Math.round((position.y / Wall.size)) * Wall.size,
+            x: Math.round((player.position.x / Wall.size)) * Wall.size,
+            y: Math.round((player.position.y / Wall.size)) * Wall.size,
         }
         this.active = true
         console.log("C'est poser");
-        // time loop ? timeout ?
+        setTimeout(() => {
+            const rc_up = new RayCast(this.center, "x", player.range * Wall.size * 2, -1)
+            const rc_down = new RayCast(this.center, "x", player.range * Wall.size * 2, 1)
+            const rc_left = new RayCast(this.center, "y", player.range * Wall.size * 2, -1)
+            const rc_right = new RayCast(this.center, "y", player.range * Wall.size * 2, 1)
+
+            const funcDestroy = (objs) => {
+                for (const obj of objs) {
+                    obj.obj.position = { x: 0, y: 0 }
+                }
+                mn.data.update("wall", b => b)
+            }
+            rc_up.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
+            rc_down.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
+            rc_left.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
+            rc_right.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
+            // time loop ? timeout ?
+            this.active = false
+            mn.data.update("bombs", b => b)
+        }, this.duration * 1000)
         mn.data.update("bombs", b => b)
     }
 
@@ -134,8 +155,11 @@ class Player {
         this.position = position
     }
 
-    static height = 50
-    static width = 50
+    size = 50
+    static size = 50
+
+    range = 1
+
     #moveAsist = {
         x: 0,
         y: 0
@@ -225,16 +249,16 @@ class Player {
         }
     }
 
-    get playerCenter() {
-        return { x: this.position.x + Player.width / 2, y: this.position.y + Player.height / 2 }
+    get center() {
+        return { x: this.position.x + Player.size / 2, y: this.position.y + Player.size / 2 }
     }
 
     /**@param {Wall} obj */ //ou bomb
     objCenter(objCenter, size) {
-        const playerPos = this.playerCenter
+        const playerPos = this.center
         return {
-            x: Math.abs(playerPos.x - objCenter.x) - Player.width / 2 - size / 2,
-            y: Math.abs(playerPos.y - objCenter.y) - Player.height / 2 - size / 2
+            x: Math.abs(playerPos.x - objCenter.x) - Player.size / 2 - size / 2,
+            y: Math.abs(playerPos.y - objCenter.y) - Player.size / 2 - size / 2
         }
     }
 
@@ -244,7 +268,7 @@ class Player {
             const line = this.game.wall_matrix[lineKey];
             for (const wallKey in line) {
                 const wall = line[wallKey];
-                const playerDist = this.objCenter(wall.wallCenter, Wall.size)
+                const playerDist = this.objCenter(wall.center, Wall.size)
                 if (playerDist.x < -this.moveAsistX && playerDist.y < -this.moveAsistY) {
                     return true
                 }
@@ -262,7 +286,7 @@ class Player {
     get checkBombColision() {
         for (const bomb of this.game.bombs) {
             if (!bomb.active) continue
-            const playerDist = this.objCenter(bomb.bombCenter, Bomb.size)
+            const playerDist = this.objCenter(bomb.center, Bomb.size)
             if (playerDist.x < 0 && playerDist.y < 0) {
                 return true
             }
@@ -280,10 +304,10 @@ class Player {
     poseBomb() {
         const bomb = Bomb.getFirstFreeBomb(this.bombs)
         if (bomb) {
-            bomb.pose({ ...this.position })
+            bomb.pose(this)
         }
         // this.game.updateBombsList()
-        
+
     }
 
 
@@ -301,5 +325,50 @@ class Player {
     }
 }
 
+class RayCast {
+    constructor(position, direction = "x", lenth = 1000, speed) {
+        this.position = position
+        this.direction = direction
+        this.lenth = lenth
+        this.speed = speed
+        // this.handler = handler
+    }
+    speed = 1
+    shoot(objs) {
+        const th = this
+        return new Promise(function (myResolve, myReject) {
+            const promises = []
+
+            for (const obj of objs) {
+                promises.push(th.#collision(obj))
+            }
+            myResolve(promises.filter(v => v !== undefined))
+            // myResolve(contactObjs); // when successful
+            // myReject();  // when error
+        });
+
+    }
+
+    #collision(obj) {
+        let rc_pos = { ...this.position }
+        const th = this
+        const objCenter = obj.center
+        const invertAxe = th.direction === "x" ? "y" : "x"
+            const dist = {
+                x: Math.abs(objCenter.x - rc_pos.x) - obj.size / 2,
+                y: Math.abs(objCenter.y - rc_pos.y) - obj.size / 2
+            }
+            const dif = objCenter[th.direction] - th.position[th.direction]
+            if ((Math.abs(dif) >= th.lenth) || th.speed < 0 && !(dif < 0) || th.speed >= 0 && !(dif >= 0) ||
+                !(dist[invertAxe] < 0)) {
+                return undefined
+            }
+
+            return {obj, dist}
+            // myReject({});  // when error
+    }
+}
+
+// const rc = new RayCast({x:225, y: 175}, "x", 4000, 1)
 
 const game = new Game()
