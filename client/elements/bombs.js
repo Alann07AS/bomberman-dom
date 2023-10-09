@@ -12,7 +12,6 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                 })
                 bombEl.classList.toggle("invisible", !bomb.active);
                 bombEl.style.transform = `translate(${bomb.position.x}px, ${bomb.position.y}px)`
-                console.log(bomb.position);
             });
 
         });

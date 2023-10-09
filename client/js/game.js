@@ -11,20 +11,19 @@ line2 = line2.flat()
 line2.push(1)
 
 let wall_matrix = [
-    [...wall],
-    [...line],
-    // [...line],
-    [...line2],
-    [...line],
-    [...line2],
-    [...line],
-    [...line2],
-    [...line],
-    [...line2],
-    [...line],
-    [...line2],
-    [...line],
-    [...wall],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1],
+    [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 1],
+    [1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
 // wall_matrix = [
@@ -33,28 +32,83 @@ let wall_matrix = [
 //     [0, 0, 0],
 // ]
 
+class Bonus {
+    static list = []
+    static types = {
+        speed: (player) => {
+            player.speed += 1
+        },
+        bombnb: (player) => {
+            player.bombs.push(new Bomb())
+            mn.data.update("newbomb")
+        },
+        range: (player) => {
+            player.range += 1
+        }
+    }
+    static typeKeys = Object.keys(Bonus.types)
+    static dropLuck = 0.3
+    static size = 40
+    static random(position) {
+        return Bonus.dropLuck >= Math.random() ? new Bonus(position) : undefined
+    }
+    constructor(position) {
+
+        this.type = Bonus.typeKeys[Math.trunc(Math.random() * Bonus.typeKeys.length)]
+        console.log("this type", this.type);
+        this.position = position
+        Bonus.list.push(this)
+        mn.data.update("bonus")
+    }
+
+    get center() {
+        return { x: this.position.x + Wall.size / 2, y: this.position.y + Wall.size / 2 }
+    }
+    apply(player) {
+        Bonus.types[this.type](player);
+        const bI = Bonus.list.findIndex((v) => v === this);
+        Bonus.list.splice(bI, 1);
+        mn.data.update("bonus")
+    }
+}
+
 class Wall {
     size = 50
     static size = 50
     constructor(val, i_line, i_col) {
-        this.type = (val === 1 ? "hardwall" : val === 2 ? "softwall" : "grass")
+        this.type = (val === 1 ? "hardwall" : (val === 2 && (Math.random() > 0.3)) ? "softwall" : "grass")
         this.position = {
-            x: Wall.size * i_line,
-            y: Wall.size * i_col,
+            x: Wall.size * i_col,
+            y: Wall.size * i_line,
         }
+    }
+
+    static destroy(wall) {
+        const index = game.wall_matrix.findIndex(w => w.position.x === wall.position.x && w.position.y === wall.position.y)
+        game.wall_matrix.splice(index, 1)
+        mn.data.update("wall")
+        Bonus.random({ ...wall.position })
     }
 
     get center() {
         return { x: this.position.x + Wall.size / 2, y: this.position.y + Wall.size / 2 }
     }
 }
-wall_matrix = wall_matrix.map((v, i_line) => v.map((v2, i_col) => new Wall(v2, i_line, i_col)).filter(v => v.type !== "grass"))
+
+function SetWall_matrix(params) {
+    wall_matrix = wall_matrix.map((v, i_line) => v.map((v2, i_col) => new Wall(v2, i_line, i_col)).filter(v => v.type !== "grass")).flat()
+}
+SetWall_matrix();
+
 console.log(wall_matrix);
 
 
 // wall_matrix.forEach(v=>console.log(...v))
-// 
 
+
+
+
+const blasts = []
 
 // BOMB 
 
@@ -65,6 +119,7 @@ class Bomb {
     }
     sprite = "./style/sprites/bomb.png"
     duration = 3 //second
+    blastDuration = 1
     active_timestamp
     active = false
     position = { x: 0, y: 0 }
@@ -81,7 +136,109 @@ class Bomb {
         return { x: this.position.x + Wall.size / 2, y: this.position.y + Wall.size / 2 }
     }
 
+    blast(player = this.player) {
+        const rc_up = new RayCast(this.center, "x", player.range * Wall.size, -1)
+        const rc_down = new RayCast(this.center, "x", player.range * Wall.size, 1)
+        const rc_left = new RayCast(this.center, "y", player.range * Wall.size, -1)
+        const rc_right = new RayCast(this.center, "y", player.range * Wall.size, 1)
+
+        const Pblasts = []
+        blasts.push(Pblasts)
+        setTimeout(() => { blasts.splice(blasts.findIndex(v => v === Pblasts), 1); mn.data.update("blasts") }, this.blastDuration * 1000)
+
+        const funcDestroyWall = ([walls, axe, speed]) => {
+            if (walls.length === 0) {
+                Pblasts.push({
+                    sprite: "blast" + axe.toUpperCase(),
+                    width: `${(axe !== "x") ? 50 : player.range * Wall.size}px`,
+                    height: `${(axe !== "y") ? 50 : player.range * Wall.size}px`,
+                    position: {
+                        x: this.position.x + ((axe === "x" && speed >= 0) ? 50 : (axe === "x" && speed < 0) ? -(player.range * Wall.size) : 0),//wall.obj.position.x > this.position.x ? this.position.x + (wall.dist["x"] > 50 ? 50 : wall.dist["y"] > 0 ? 0 : 50) : wall.obj.position.x,
+                        y: this.position.y + ((axe === "y" && speed >= 0) ? 50 : (axe === "y" && speed < 0) ? -(player.range * Wall.size) : 0),//wall.obj.position.y > this.position.y ? this.position.y + (wall.dist["y"] > 50 ? 50 : wall.dist["x"] > 0 ? 0 : 50) : wall.obj.position.y,
+                    },
+                })
+                mn.data.update("blasts")
+                return
+            }
+            const wall = walls.reduce((previous, curent) => {
+                return previous.dist[axe] < curent.dist[axe] ? previous : curent
+            }, walls[0])
+
+            if (wall.obj.type === "hardwall") {
+                if (wall.dist[axe] < 50) {
+                    return
+                }
+                Pblasts.push({
+                    sprite: "blast" + axe.toUpperCase(),
+                    width: `${((axe !== "x") ? 50 : wall.dist[axe] - 25)}px`,
+                    height: `${((axe !== "y") ? 50 : wall.dist[axe] - 25)}px`,
+                    position: {
+                        x: (wall.obj.position.x > this.position.x ? this.position.x + (wall.dist["x"] > 50 ? 50 : (wall.dist["y"] > 0 ? 0 : 50)) : wall.obj.position.x + (axe === "x" ? 50 : 0)),
+                        y: (wall.obj.position.y > this.position.y ? this.position.y + (wall.dist["y"] > 50 ? 50 : (wall.dist["x"] > 0 ? 0 : 50)) : wall.obj.position.y + (axe === "y" ? 50 : 0)),
+                    },
+                })
+                mn.data.update("blasts")
+                return
+            }
+            if (wall.obj.type !== "softwall") return
+            Wall.destroy(wall.obj)
+            Pblasts.push({
+                sprite: "blast" + axe.toUpperCase(),
+                width: `${(axe !== "x") ? 50 : wall.dist[axe] + 25}px`,
+                height: `${(axe !== "y") ? 50 : wall.dist[axe] + 25}px`,
+                position: {
+                    x: wall.obj.position.x > this.position.x ? this.position.x + (wall.dist["x"] > 50 ? 50 : wall.dist["y"] > 0 ? 0 : 50) : wall.obj.position.x,
+                    y: wall.obj.position.y > this.position.y ? this.position.y + (wall.dist["y"] > 50 ? 50 : wall.dist["x"] > 0 ? 0 : 50) : wall.obj.position.y,
+                },
+            })
+            mn.data.update("blasts")
+        }
+        rc_up.shoot(game.wall_matrix).then(funcDestroyWall)
+        rc_down.shoot(game.wall_matrix).then(funcDestroyWall)
+        rc_left.shoot(game.wall_matrix).then(funcDestroyWall)
+        rc_right.shoot(game.wall_matrix).then(funcDestroyWall)
+
+        const funcHitPlayer = ([players, axe]) => {
+            for (const player of players) {
+                console.log("Player hit !", player);
+                player.obj.dead = true
+            }
+        }
+        rc_up.shoot(game.slots).then(funcHitPlayer)
+        rc_down.shoot(game.slots).then(funcHitPlayer)
+        rc_left.shoot(game.slots).then(funcHitPlayer)
+        rc_right.shoot(game.slots).then(funcHitPlayer)
+
+
+        const funcHitBomb = ([bombs, axe]) => {
+            console.log(bombs);
+            for (const bomb of bombs) {
+                console.log(bomb.obj, bomb.obj.active)
+                if (bomb.obj !== this && bomb.obj.active) {
+                    console.log("BOMBIT");
+                    clearTimeout(bomb.obj.timeoutId)
+                    bomb.obj.blast()
+                }
+            }
+        }
+        rc_up.shoot(game.bombs).then(funcHitBomb)
+        rc_down.shoot(game.bombs).then(funcHitBomb)
+        rc_left.shoot(game.bombs).then(funcHitBomb)
+        rc_right.shoot(game.bombs).then(funcHitBomb)
+
+        this.active = false
+        mn.data.update("bombs", b => b)
+        Pblasts.push({
+            sprite: "blastMidle",
+            width: `50px`,
+            height: `50px`,
+            position: this.position,
+        })
+        mn.data.update("blasts")
+    }
+
     pose(player) {
+        this.player = player
         this.active_timestamp = Date.now()
         this.position = {
             x: Math.round((player.position.x / Wall.size)) * Wall.size,
@@ -89,26 +246,7 @@ class Bomb {
         }
         this.active = true
         console.log("C'est poser");
-        setTimeout(() => {
-            const rc_up = new RayCast(this.center, "x", player.range * Wall.size * 2, -1)
-            const rc_down = new RayCast(this.center, "x", player.range * Wall.size * 2, 1)
-            const rc_left = new RayCast(this.center, "y", player.range * Wall.size * 2, -1)
-            const rc_right = new RayCast(this.center, "y", player.range * Wall.size * 2, 1)
-
-            const funcDestroy = (objs) => {
-                for (const obj of objs) {
-                    obj.obj.position = { x: 0, y: 0 }
-                }
-                mn.data.update("wall", b => b)
-            }
-            rc_up.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
-            rc_down.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
-            rc_left.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
-            rc_right.shoot([...game.wall_matrix.flat(), ...game.bombs,]).then(funcDestroy)
-            // time loop ? timeout ?
-            this.active = false
-            mn.data.update("bombs", b => b)
-        }, this.duration * 1000)
+        this.timeoutId = setTimeout(() => (this.blast()), this.duration * 1000)
         mn.data.update("bombs", b => b)
     }
 
@@ -121,10 +259,10 @@ class Game {
     }
 
     slots = [
+        new Player(this, "./style/sprites/black.png", { x: Wall.size * 11, y: Wall.size * 11 }),
         new Player(this, "./style/sprites/white.png", { x: Wall.size * 1, y: Wall.size * 1 }),
         new Player(this, "./style/sprites/red.png", { x: Wall.size * 11, y: Wall.size * 1 }),
         new Player(this, "./style/sprites/blue.png", { x: Wall.size * 1, y: Wall.size * 11 }),
-        new Player(this, "./style/sprites/black.png", { x: Wall.size * 11, y: Wall.size * 11 })
     ]
 
     wall_matrix = [...wall_matrix]
@@ -191,11 +329,18 @@ class Player {
     }
     // #isMoving
     speed = 1.4
+    dead = false
     position = { x: 0, y: 0 }
     get move() {
         const th = this
+        const b = this.checkBonusColision;
+        if (b) {
+            console.log(b);
+            b.apply(this)
+        }
         return class {
             static left = () => {
+                if (th.dead) return
                 let colistionBomb = th.checkBombColision
                 th.position.x -= th.speed
                 let colistionBomb2 = th.checkBombColision
@@ -208,6 +353,7 @@ class Player {
                 }
             }
             static right = () => {
+                if (th.dead) return
                 let colistionBomb = th.checkBombColision
                 th.position.x += th.speed
                 let colistionBomb2 = th.checkBombColision
@@ -221,6 +367,7 @@ class Player {
                 }
             }
             static up = () => {
+                if (th.dead) return
                 let colistionBomb = th.checkBombColision
                 th.position.y -= th.speed
                 let colistionBomb2 = th.checkBombColision
@@ -234,6 +381,7 @@ class Player {
                 }
             }
             static down = () => {
+                if (th.dead) return
                 let colistionBomb = th.checkBombColision
                 th.position.y += th.speed
                 let colistionBomb2 = th.checkBombColision
@@ -264,14 +412,11 @@ class Player {
 
     get checkColision() {
 
-        for (const lineKey in this.game.wall_matrix) {
-            const line = this.game.wall_matrix[lineKey];
-            for (const wallKey in line) {
-                const wall = line[wallKey];
-                const playerDist = this.objCenter(wall.center, Wall.size)
-                if (playerDist.x < -this.moveAsistX && playerDist.y < -this.moveAsistY) {
-                    return true
-                }
+        for (const wallKey in this.game.wall_matrix) {
+            const wall = this.game.wall_matrix[wallKey];
+            const playerDist = this.objCenter(wall.center, Wall.size)
+            if (playerDist.x < -this.moveAsistX && playerDist.y < -this.moveAsistY) {
+                return true
             }
         }
         return false
@@ -293,12 +438,21 @@ class Player {
         }
         return false
     }
+    get checkBonusColision() {
+        for (const bonus of Bonus.list) {
+            const playerDist = this.objCenter(bonus.center, Bonus.size)
+            if (playerDist.x < 0 && playerDist.y < 0) {
+                return bonus
+            }
+        }
+        return false
+    }
 
 
 
     //bomb
     bombs = [
-        new Bomb()
+        new Bomb(),
     ]
 
     poseBomb() {
@@ -306,7 +460,7 @@ class Player {
         if (bomb) {
             bomb.pose(this)
         }
-        // this.game.updateBombsList()
+        this.game.updateBombsList()
 
     }
 
@@ -339,10 +493,10 @@ class RayCast {
         return new Promise(function (myResolve, myReject) {
             const promises = []
 
-            for (const obj of objs) {
-                promises.push(th.#collision(obj))
+            for (const objKey in objs) {
+                promises.push(th.#collision(objs[objKey]))
             }
-            myResolve(promises.filter(v => v !== undefined))
+            myResolve([promises.filter(v => v !== undefined), th.direction, th.speed])
             // myResolve(contactObjs); // when successful
             // myReject();  // when error
         });
@@ -350,25 +504,26 @@ class RayCast {
     }
 
     #collision(obj) {
-        let rc_pos = { ...this.position }
         const th = this
         const objCenter = obj.center
         const invertAxe = th.direction === "x" ? "y" : "x"
-            const dist = {
-                x: Math.abs(objCenter.x - rc_pos.x) - obj.size / 2,
-                y: Math.abs(objCenter.y - rc_pos.y) - obj.size / 2
-            }
-            const dif = objCenter[th.direction] - th.position[th.direction]
-            if ((Math.abs(dif) >= th.lenth) || th.speed < 0 && !(dif < 0) || th.speed >= 0 && !(dif >= 0) ||
-                !(dist[invertAxe] < 0)) {
-                return undefined
-            }
-
-            return {obj, dist}
-            // myReject({});  // when error
+        const dist = {
+            x: Math.abs(objCenter.x - this.position.x) - obj.size / 2,
+            y: Math.abs(objCenter.y - this.position.y) - obj.size / 2
+        }
+        const dif = objCenter[th.direction] - th.position[th.direction]
+        if ((Math.abs(dist[th.direction]) > th.lenth) || th.speed <= 0 && !(dif <= 0) || th.speed >= 0 && !(dif >= 0) ||
+            !(dist[invertAxe] < 0)) {
+            return undefined
+        }
+        return { obj, dist }
+        // myReject({});  // when error
     }
 }
 
-// const rc = new RayCast({x:225, y: 175}, "x", 4000, 1)
-
+// const rc = new RayCast({x:175, y: 175}, "x", 100, 1)
 const game = new Game()
+// rc.shoot(game.wall_matrix.flat()).then(objs=>objs.forEach(element => {
+//   element.obj.position = {x:0, y:0}
+//   mn.data.update("wall", w=>w)  
+// }))

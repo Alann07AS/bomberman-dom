@@ -82,7 +82,11 @@ body {
 }
 
 .softwall {
-    background-image: url("");
+    background-image: url("./sprites/wall.png");
+    background-size: contain;
+    position: absolute;
+    height: 50px;
+    width: 50px;
 }
 
 /* bomb */
@@ -96,4 +100,48 @@ body {
 }
 .invisible {
     display: none;
+}
+
+/* blast */
+.blastX {
+    background-image: url("./sprites/blastX.png");
+    background-repeat: repeat-x;
+    background-size: contain;
+    position: absolute;
+}
+
+.blastY {
+    background-image: url("./sprites/blastY.png");
+    background-repeat: repeat-y;
+    background-size: contain;
+    position: absolute;
+}
+
+.blastMidle {
+    background-image: url("./sprites/blastMidle.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: absolute;
+}
+
+
+/* bonus */
+.bonus {
+    height: 50px;
+    width: 50px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: absolute;
+}
+
+.speed {
+    background-image: url("./sprites/speedbonus.png");
+}
+
+.range {
+    background-image: url("./sprites/flamebonus.png");
+}
+
+.bombnb {
+    background-image: url("./sprites/bombbonus.png");
 }
