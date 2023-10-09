@@ -1,33 +1,84 @@
 mn.insert(document.currentScript, (updater, old_element_updater) => {
-    console.log(data.username);
-    if (data.username !== "") return []
+    mn.data.bind("page_status", updater)
 
-    const onvalid = (/**@type {Event}*/e) => {
-        if (e.type !== "click" && e.key !== "Enter") return
-        data.username = mn.id("login_input").value
-        SaveData()
+    if (data.page_status !== "join") return []
+    const joinServer = (e)=>{
+        if (e.code === "Enter" || e.type === "click") {
+            console.log(mn.id("ip-lan").value);
+        }
     }
 
     return [
         mn.element.create(
             "div",
             {
-                id: "login_div",
+                class: "join",
             },
             mn.element.create(
-                "input",
+                "div",
                 {
-                    id: "login_input",
-                    onkeyup: onvalid,
+                    class: "pulic"
                 },
+                mn.element.create(
+                    "h3",
+                    {
+                        class: "join_part"
+                    },
+                    "Public"
+                ),
             ),
             mn.element.create(
-                "button",
+                "div",
                 {
-                    onclick: onvalid,
+                    class: "private"
                 },
-                "Valid"
-            )
+                mn.element.create(
+                    "h3",
+                    {
+                        class: "join_part"
+                    },
+                    "Private"
+                ),
+            ),
+            mn.element.create(
+                "div",
+                {
+                    class: "lan"
+                },
+                mn.element.create(
+                    "h3",
+                    {
+                        class: "join_part"
+                    },
+                    "Lan"
+                ),
+                mn.element.create(
+                    "label",
+                    {
+                        for: "ip-lan",
+                    },
+                    "Enter ip server to join:"
+                ),
+                mn.element.create(
+                    "input",
+                    {
+                        placeholder: "xxx.xxx.xxx.xx:xxxxx",
+                        autocomplete: "off",
+                        id: "ip-lan",
+                        type: "text",
+                        onkeydown: joinServer,
+                    }
+                ),
+                mn.element.create(
+                    "button",
+                    {
+                        id: "ip-lan",
+                        type: "text",
+                        onclick: joinServer,
+                    },
+                    "Join"
+                )
+            ),
         )
     ]
 })

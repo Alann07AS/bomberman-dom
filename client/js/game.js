@@ -119,7 +119,7 @@ class Bomb {
     }
     sprite = "./style/sprites/bomb.png"
     duration = 3 //second
-    blastDuration = 1
+    blastDuration = 0.5
     active_timestamp
     active = false
     position = { x: 0, y: 0 }

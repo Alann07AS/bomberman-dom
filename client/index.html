@@ -1,20 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bomberman_DOM</title>
     <link rel="shortcut icon" href="#" type="image/x-icon">
     <link rel="stylesheet" href="style/style.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        var socket = io("localhost:3000");
+    </script>
     <script src="js/mini_framework.js"></script>
     <script src="js/data.js"></script>
     <script src="js/game.js"></script>
     <script src="js/app.js"></script>
 </head>
+
 <body>
-    <script src="./elements/img_loader.js"></script>
+    <div><script src="./elements/img_loader.js"></script></div>
     <img class="logo" src="./style/bomb_logo.png">
     <script src="elements/menus.js"></script>
     <script src="elements/game.js"></script>
+    <script src="elements/join.js"></script>
 </body>
+
 </html>

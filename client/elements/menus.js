@@ -36,7 +36,8 @@ mn.insert(document.currentScript, (updaters, old_elements_updater) => {
                     mn.element.create(
                         "button",
                         {
-                            class: "menu_bt"
+                            class: "menu_bt",
+                            onclick: ()=>PageStatus("join"),
                         },
                         "Join"
                     ),
@@ -49,7 +50,8 @@ mn.insert(document.currentScript, (updaters, old_elements_updater) => {
                     mn.element.create(
                         "button",
                         {
-                            class: "menu_bt"
+                            class: "menu_bt",
+                            onclick: ()=>PageStatus("menu"), //a changer en join
                         },
                         "Settings"
                     ),
