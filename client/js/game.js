@@ -119,7 +119,7 @@ class Bomb {
     }
     sprite = "./style/sprites/bomb.png"
     duration = 3 //second
-    blastDuration = 0.5
+    blastDuration = 2
     active_timestamp
     active = false
     position = { x: 0, y: 0 }
@@ -144,37 +144,58 @@ class Bomb {
 
         const Pblasts = []
         blasts.push(Pblasts)
-        setTimeout(() => { blasts.splice(blasts.findIndex(v => v === Pblasts), 1); mn.data.update("blasts") }, this.blastDuration * 1000)
+        let isBlast = true
 
-        const funcHitPlayer = ([playersWall, axe, speed]) => {
-            // console.log(playersWall);
-            const walls =playersWall.filter(v=>v.obj instanceof Wall);
+        // timeout to cancelled blast
+        setTimeout(() => {
+            blasts.splice(blasts.findIndex(v => v === Pblasts), 1);
+            isBlast = false
+            mn.data.update("blasts");
+        }, this.blastDuration * 1000)
+
+        const funcHitPlayerWallAndBomb = ([playersWall, axe, speed]) => {
+            // get all wall and first wall
+            const walls = playersWall.filter(v => v.obj instanceof Wall);
             const firstWall = walls.reduce((previous, curent) => {
                 return previous.dist[axe] < curent.dist[axe] ? previous : curent
             }, walls[0])
-            console.log(firstWall);
-            const beforeWall = firstWall ? playersWall.filter(val => {console.log(val.obj, val.dist[axe], firstWall.dist[axe]);return val.dist[axe] < firstWall.dist[axe]}) : playersWall
-            console.log(beforeWall);
-            // const first = playersWall.reduce((previous, curent) => {
-            // return previous.dist[axe] < curent.dist[axe] ? previous : curent
-            // }, playersWall[0])
 
-            for (const item of beforeWall) {
-                //toucher un joueur
-                if (item.obj instanceof Player) {
-                    console.log("Player hit !", item.obj);
-                    item.obj.dead = true
-                    continue
+            //get elemnt front of the first wall (all if no wall)
+            const beforeWall = firstWall ? playersWall.filter(val => val.dist[axe] < firstWall.dist[axe]) : playersWall
+
+            const hadleBombPlayer = (beforeWall) => {
+                for (const item of beforeWall) {
+                    //toucher un joueur
+                    if (item.obj instanceof Player) {
+                        console.log("Player hit !", item.obj);
+                        item.obj.dead = true
+                        continue
+                    }
+
+                    //bombe toucher
+                    if (item.obj instanceof Bomb && item.obj !== this && item.obj.active) {
+                        clearTimeout(item.obj.timeoutId)
+                        item.obj.blast()
+                        continue
+                    }
+
                 }
-
-                //bombe toucher
-                if (item.obj instanceof Bomb && item.obj !== this && item.obj.active) {
-                    clearTimeout(item.obj.timeoutId)
-                    item.obj.blast()
-                    continue
-                }
-
             }
+
+            hadleBombPlayer(beforeWall)
+
+            // tire le raycast pendant toute la durer du blast
+            const rc_blast = new RayCast(this.center, axe, Math.abs(player.range * Wall.size), speed)
+            console.log(rc_blast);
+            const funcHitPlayerAfterBlast = ([item, axe, speed]) => {
+                if (!isBlast) return // stop if blast done
+                hadleBombPlayer(item)
+                //check again
+                requestAnimationFrame(() => {
+                    rc_blast.shoot([...game.slots, ...game.bombs]).then(funcHitPlayerAfterBlast)
+                })
+            }
+            rc_blast.shoot([...game.slots, ...game.bombs]).then(funcHitPlayerAfterBlast)
 
             //si aucun mur toucher
             if (!firstWall) {
@@ -225,27 +246,12 @@ class Bomb {
                 mn.data.update("blasts")
             }
         }
-        rc_up.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
-        rc_down.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
-        rc_left.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
-        rc_right.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
+        rc_up.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
+        rc_down.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
+        rc_left.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
+        rc_right.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
 
-
-        const funcHitBomb = ([bombs, axe]) => {
-            for (const bomb of bombs) {
-                if (bomb.obj !== this && bomb.obj.active) {
-                    // clearTimeout(bomb.obj.timeoutId)
-                    // bomb.obj.blast()
-                }
-            }
-        }
-        rc_up.shoot(game.bombs).then(funcHitBomb)
-        rc_down.shoot(game.bombs).then(funcHitBomb)
-        rc_left.shoot(game.bombs).then(funcHitBomb)
-        rc_right.shoot(game.bombs).then(funcHitBomb)
-
-        this.active = false
-        mn.data.update("bombs", b => b)
+        // midlle blast
         Pblasts.push({
             sprite: "blastMidle",
             width: `50px`,
@@ -253,6 +259,8 @@ class Bomb {
             position: this.position,
         })
         mn.data.update("blasts")
+        this.active = false
+        mn.data.update("bombs", b => b)
     }
 
     pose(player) {
