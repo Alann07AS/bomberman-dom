@@ -4,7 +4,12 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
     if (data.page_status !== "join") return []
     const joinServer = (e)=>{
         if (e.code === "Enter" || e.type === "click") {
-            console.log(mn.id("ip-lan").value);
+            /**@type {?} */
+            var socket = io(mn.id("ip-lan").value);
+
+            socket.on("connect", ()=>{
+                console.log(socket.connected);
+            })
         }
     }
 
@@ -62,6 +67,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                 mn.element.create(
                     "input",
                     {
+                        value: "localhost:3000", //temp value
                         placeholder: "xxx.xxx.xxx.xx:xxxxx",
                         autocomplete: "off",
                         id: "ip-lan",

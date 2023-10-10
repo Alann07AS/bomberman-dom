@@ -28,7 +28,7 @@ let wall_matrix = [
 
 // wall_matrix = [
 //     [0, 0],
-//     [0, 1],
+//     [0, 0],
 //     [0, 0, 0],
 // ]
 
@@ -137,17 +137,48 @@ class Bomb {
     }
 
     blast(player = this.player) {
-        const rc_up = new RayCast(this.center, "x", player.range * Wall.size, -1)
-        const rc_down = new RayCast(this.center, "x", player.range * Wall.size, 1)
-        const rc_left = new RayCast(this.center, "y", player.range * Wall.size, -1)
-        const rc_right = new RayCast(this.center, "y", player.range * Wall.size, 1)
+        const rc_up = new RayCast(this.center, "y", player.range * Wall.size, -1)
+        const rc_down = new RayCast(this.center, "y", player.range * Wall.size, 1)
+        const rc_left = new RayCast(this.center, "x", player.range * Wall.size, -1)
+        const rc_right = new RayCast(this.center, "x", player.range * Wall.size, 1)
 
         const Pblasts = []
         blasts.push(Pblasts)
         setTimeout(() => { blasts.splice(blasts.findIndex(v => v === Pblasts), 1); mn.data.update("blasts") }, this.blastDuration * 1000)
 
-        const funcDestroyWall = ([walls, axe, speed]) => {
-            if (walls.length === 0) {
+        const funcHitPlayer = ([playersWall, axe, speed]) => {
+            // console.log(playersWall);
+            const walls =playersWall.filter(v=>v.obj instanceof Wall);
+            const firstWall = walls.reduce((previous, curent) => {
+                return previous.dist[axe] < curent.dist[axe] ? previous : curent
+            }, walls[0])
+            console.log(firstWall);
+            const beforeWall = firstWall ? playersWall.filter(val => {console.log(val.obj, val.dist[axe], firstWall.dist[axe]);return val.dist[axe] < firstWall.dist[axe]}) : playersWall
+            console.log(beforeWall);
+            // const first = playersWall.reduce((previous, curent) => {
+            // return previous.dist[axe] < curent.dist[axe] ? previous : curent
+            // }, playersWall[0])
+
+            for (const item of beforeWall) {
+                //toucher un joueur
+                if (item.obj instanceof Player) {
+                    console.log("Player hit !", item.obj);
+                    item.obj.dead = true
+                    continue
+                }
+
+                //bombe toucher
+                if (item.obj instanceof Bomb && item.obj !== this && item.obj.active) {
+                    clearTimeout(item.obj.timeoutId)
+                    item.obj.blast()
+                    continue
+                }
+
+            }
+
+            //si aucun mur toucher
+            if (!firstWall) {
+                console.log("PAS DE MUR TOUCHER");
                 Pblasts.push({
                     sprite: "blast" + axe.toUpperCase(),
                     width: `${(axe !== "x") ? 50 : player.range * Wall.size}px`,
@@ -160,64 +191,51 @@ class Bomb {
                 mn.data.update("blasts")
                 return
             }
-            const wall = walls.reduce((previous, curent) => {
-                return previous.dist[axe] < curent.dist[axe] ? previous : curent
-            }, walls[0])
 
-            if (wall.obj.type === "hardwall") {
-                if (wall.dist[axe] < 50) {
+            //si toucher un mur dur
+            if (firstWall.obj.type === "hardwall") {
+                if (firstWall.dist[axe] < 50) {
                     return
                 }
                 Pblasts.push({
                     sprite: "blast" + axe.toUpperCase(),
-                    width: `${((axe !== "x") ? 50 : wall.dist[axe] - 25)}px`,
-                    height: `${((axe !== "y") ? 50 : wall.dist[axe] - 25)}px`,
+                    width: `${((axe !== "x") ? 50 : firstWall.dist[axe] - 25)}px`,
+                    height: `${((axe !== "y") ? 50 : firstWall.dist[axe] - 25)}px`,
                     position: {
-                        x: (wall.obj.position.x > this.position.x ? this.position.x + (wall.dist["x"] > 50 ? 50 : (wall.dist["y"] > 0 ? 0 : 50)) : wall.obj.position.x + (axe === "x" ? 50 : 0)),
-                        y: (wall.obj.position.y > this.position.y ? this.position.y + (wall.dist["y"] > 50 ? 50 : (wall.dist["x"] > 0 ? 0 : 50)) : wall.obj.position.y + (axe === "y" ? 50 : 0)),
+                        x: (firstWall.obj.position.x > this.position.x ? this.position.x + (firstWall.dist["x"] > 50 ? 50 : (firstWall.dist["y"] > 0 ? 0 : 50)) : firstWall.obj.position.x + (axe === "x" ? 50 : 0)),
+                        y: (firstWall.obj.position.y > this.position.y ? this.position.y + (firstWall.dist["y"] > 50 ? 50 : (firstWall.dist["x"] > 0 ? 0 : 50)) : firstWall.obj.position.y + (axe === "y" ? 50 : 0)),
                     },
                 })
                 mn.data.update("blasts")
                 return
             }
-            if (wall.obj.type !== "softwall") return
-            Wall.destroy(wall.obj)
-            Pblasts.push({
-                sprite: "blast" + axe.toUpperCase(),
-                width: `${(axe !== "x") ? 50 : wall.dist[axe] + 25}px`,
-                height: `${(axe !== "y") ? 50 : wall.dist[axe] + 25}px`,
-                position: {
-                    x: wall.obj.position.x > this.position.x ? this.position.x + (wall.dist["x"] > 50 ? 50 : wall.dist["y"] > 0 ? 0 : 50) : wall.obj.position.x,
-                    y: wall.obj.position.y > this.position.y ? this.position.y + (wall.dist["y"] > 50 ? 50 : wall.dist["x"] > 0 ? 0 : 50) : wall.obj.position.y,
-                },
-            })
-            mn.data.update("blasts")
-        }
-        rc_up.shoot(game.wall_matrix).then(funcDestroyWall)
-        rc_down.shoot(game.wall_matrix).then(funcDestroyWall)
-        rc_left.shoot(game.wall_matrix).then(funcDestroyWall)
-        rc_right.shoot(game.wall_matrix).then(funcDestroyWall)
 
-        const funcHitPlayer = ([players, axe]) => {
-            for (const player of players) {
-                console.log("Player hit !", player);
-                player.obj.dead = true
+            //si toucher un mur destructible
+            if (firstWall.obj.type === "softwall") {
+                Wall.destroy(firstWall.obj)
+                Pblasts.push({
+                    sprite: "blast" + axe.toUpperCase(),
+                    width: `${(axe !== "x") ? 50 : firstWall.dist[axe] + 25}px`,
+                    height: `${(axe !== "y") ? 50 : firstWall.dist[axe] + 25}px`,
+                    position: {
+                        x: firstWall.obj.position.x > this.position.x ? this.position.x + (firstWall.dist["x"] > 50 ? 50 : firstWall.dist["y"] > 0 ? 0 : 50) : firstWall.obj.position.x,
+                        y: firstWall.obj.position.y > this.position.y ? this.position.y + (firstWall.dist["y"] > 50 ? 50 : firstWall.dist["x"] > 0 ? 0 : 50) : firstWall.obj.position.y,
+                    },
+                })
+                mn.data.update("blasts")
             }
         }
-        rc_up.shoot(game.slots).then(funcHitPlayer)
-        rc_down.shoot(game.slots).then(funcHitPlayer)
-        rc_left.shoot(game.slots).then(funcHitPlayer)
-        rc_right.shoot(game.slots).then(funcHitPlayer)
+        rc_up.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
+        rc_down.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
+        rc_left.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
+        rc_right.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayer)
 
 
         const funcHitBomb = ([bombs, axe]) => {
-            console.log(bombs);
             for (const bomb of bombs) {
-                console.log(bomb.obj, bomb.obj.active)
                 if (bomb.obj !== this && bomb.obj.active) {
-                    console.log("BOMBIT");
-                    clearTimeout(bomb.obj.timeoutId)
-                    bomb.obj.blast()
+                    // clearTimeout(bomb.obj.timeoutId)
+                    // bomb.obj.blast()
                 }
             }
         }
@@ -296,7 +314,7 @@ class Player {
     size = 50
     static size = 50
 
-    range = 1
+    range = 2
 
     #moveAsist = {
         x: 0,
@@ -328,7 +346,7 @@ class Player {
         image: "./style/default_user_void.png",
     }
     // #isMoving
-    speed = 1.4
+    speed = 3//1.4
     dead = false
     position = { x: 0, y: 0 }
     get move() {
