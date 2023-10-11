@@ -1,0 +1,1 @@
+rajout des gamepad maping: "", "standard", "xr-standard"

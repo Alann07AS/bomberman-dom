@@ -74,6 +74,7 @@ class Bonus {
 
 class Wall {
     size = 50
+    isDestroy = false
     static size = 50
     constructor(val, i_line, i_col) {
         this.type = (val === 1 ? "hardwall" : (val === 2 && (Math.random() > 0.3)) ? "softwall" : "grass")
@@ -84,10 +85,14 @@ class Wall {
     }
 
     static destroy(wall) {
-        const index = game.wall_matrix.findIndex(w => w.position.x === wall.position.x && w.position.y === wall.position.y)
-        game.wall_matrix.splice(index, 1)
-        mn.data.update("wall")
-        Bonus.random({ ...wall.position })
+        wall.isDestroy = true
+        mn.data.update("walldestroy")
+        setTimeout(()=>{
+            const index = game.wall_matrix.findIndex(w => w.position.x === wall.position.x && w.position.y === wall.position.y)
+            game.wall_matrix.splice(index, 1)
+            mn.data.update("wall")
+            Bonus.random({ ...wall.position })    
+        }, 500)
     }
 
     get center() {
@@ -181,11 +186,11 @@ class Bomb {
 
                 }
             }
-
             hadleBombPlayer(beforeWall)
 
             // tire le raycast pendant toute la durer du blast
-            const rc_blast = new RayCast(this.center, axe, Math.abs(player.range * Wall.size), speed)
+            const range = (firstWall ? firstWall.dist[axe] : Math.abs(player.range * Wall.size))
+            const rc_blast = new RayCast(this.center, axe, range, speed)
             console.log(rc_blast);
             const funcHitPlayerAfterBlast = ([item, axe, speed]) => {
                 if (!isBlast) return // stop if blast done
@@ -214,10 +219,7 @@ class Bomb {
             }
 
             //si toucher un mur dur
-            if (firstWall.obj.type === "hardwall") {
-                if (firstWall.dist[axe] < 50) {
-                    return
-                }
+            if (!(firstWall.dist[axe] < 50)) {
                 Pblasts.push({
                     sprite: "blast" + axe.toUpperCase(),
                     width: `${((axe !== "x") ? 50 : firstWall.dist[axe] - 25)}px`,
@@ -228,28 +230,25 @@ class Bomb {
                     },
                 })
                 mn.data.update("blasts")
-                return
             }
+
+
+            {
+                // rajouter Animation destruction block (fait mais pas bon car le gif est synchro avec toute les mur)
+                // pour aussi rajouter destruction des bonus au explosion
+            }
+
 
             //si toucher un mur destructible
             if (firstWall.obj.type === "softwall") {
                 Wall.destroy(firstWall.obj)
-                Pblasts.push({
-                    sprite: "blast" + axe.toUpperCase(),
-                    width: `${(axe !== "x") ? 50 : firstWall.dist[axe] + 25}px`,
-                    height: `${(axe !== "y") ? 50 : firstWall.dist[axe] + 25}px`,
-                    position: {
-                        x: firstWall.obj.position.x > this.position.x ? this.position.x + (firstWall.dist["x"] > 50 ? 50 : firstWall.dist["y"] > 0 ? 0 : 50) : firstWall.obj.position.x,
-                        y: firstWall.obj.position.y > this.position.y ? this.position.y + (firstWall.dist["y"] > 50 ? 50 : firstWall.dist["x"] > 0 ? 0 : 50) : firstWall.obj.position.y,
-                    },
-                })
                 mn.data.update("blasts")
             }
         }
-        rc_up.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
-        rc_down.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
-        rc_left.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
-        rc_right.shoot([...game.slots, ...game.wall_matrix, ...game.bombs]).then(funcHitPlayerWallAndBomb)
+        rc_up.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
+        rc_down.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
+        rc_left.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
+        rc_right.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
 
         // midlle blast
         Pblasts.push({

@@ -107,6 +107,14 @@ body {
     width: 50px;
 }
 
+.destroy {
+    background-image: url("./sprites/blast.gif");
+    background-size: contain;
+    position: absolute;
+    height: 50px;
+    width: 50px;
+}
+
 /* bomb */
 
 .bomb {

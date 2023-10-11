@@ -107,6 +107,7 @@ class InputManager {
     static initGamepadListener = () => {
         window.addEventListener("gamepadconnected", (e) => {
             this.#gamepads[e.gamepad.id] = e.gamepad
+            console.log(e.gamepad.mapping);
             this.#gamepadsLastState[e.gamepad.id] = deepCopy(e.gamepad)
             if (Object.keys(this.#gamepads).length < 1) return
             // new Controleur("{PS4}", ps4_keybind, e.gamepad.id)
