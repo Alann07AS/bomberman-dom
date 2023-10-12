@@ -43,21 +43,22 @@ class Bonus {
             mn.data.update("newbomb")
         },
         range: (player) => {
-            player.range += 1
+            player.range += 0.5
         }
     }
     static typeKeys = Object.keys(Bonus.types)
     static dropLuck = 0.3
     static size = 40
+    size = 40
     static random(position) {
         return Bonus.dropLuck >= Math.random() ? new Bonus(position) : undefined
     }
     constructor(position) {
 
         this.type = Bonus.typeKeys[Math.trunc(Math.random() * Bonus.typeKeys.length)]
-        console.log("this type", this.type);
         this.position = position
         Bonus.list.push(this)
+        console.log("bonus list:", Bonus.list);
         mn.data.update("bonus")
     }
 
@@ -66,6 +67,9 @@ class Bonus {
     }
     apply(player) {
         Bonus.types[this.type](player);
+        this.destroy()
+    }
+    destroy() {
         const bI = Bonus.list.findIndex((v) => v === this);
         Bonus.list.splice(bI, 1);
         mn.data.update("bonus")
@@ -87,11 +91,11 @@ class Wall {
     static destroy(wall) {
         wall.isDestroy = true
         mn.data.update("walldestroy")
-        setTimeout(()=>{
+        setTimeout(() => {
             const index = game.wall_matrix.findIndex(w => w.position.x === wall.position.x && w.position.y === wall.position.y)
             game.wall_matrix.splice(index, 1)
             mn.data.update("wall")
-            Bonus.random({ ...wall.position })    
+            Bonus.random({ ...wall.position })
         }, 500)
     }
 
@@ -124,7 +128,7 @@ class Bomb {
     }
     sprite = "./style/sprites/bomb.png"
     duration = 3 //second
-    blastDuration = 2
+    blastDuration = 0.5
     active_timestamp
     active = false
     position = { x: 0, y: 0 }
@@ -159,6 +163,7 @@ class Bomb {
         }, this.blastDuration * 1000)
 
         const funcHitPlayerWallAndBomb = ([playersWall, axe, speed]) => {
+            console.log(playersWall.map(b => b instanceof Bonus));
             // get all wall and first wall
             const walls = playersWall.filter(v => v.obj instanceof Wall);
             const firstWall = walls.reduce((previous, curent) => {
@@ -172,7 +177,7 @@ class Bomb {
                 for (const item of beforeWall) {
                     //toucher un joueur
                     if (item.obj instanceof Player) {
-                        console.log("Player hit !", item.obj);
+                        // console.log("Player hit !", item.obj);
                         item.obj.dead = true
                         continue
                     }
@@ -184,6 +189,11 @@ class Bomb {
                         continue
                     }
 
+                    //bonus toucher
+                    if (item.obj instanceof Bonus) {
+                        item.obj.destroy()
+                        continue
+                    }
                 }
             }
             hadleBombPlayer(beforeWall)
@@ -191,20 +201,20 @@ class Bomb {
             // tire le raycast pendant toute la durer du blast
             const range = (firstWall ? firstWall.dist[axe] : Math.abs(player.range * Wall.size))
             const rc_blast = new RayCast(this.center, axe, range, speed)
-            console.log(rc_blast);
+            // console.log(rc_blast);
             const funcHitPlayerAfterBlast = ([item, axe, speed]) => {
                 if (!isBlast) return // stop if blast done
                 hadleBombPlayer(item)
                 //check again
                 requestAnimationFrame(() => {
-                    rc_blast.shoot([...game.slots, ...game.bombs]).then(funcHitPlayerAfterBlast)
+                    rc_blast.shoot([...game.slots]).then(funcHitPlayerAfterBlast)
                 })
             }
-            rc_blast.shoot([...game.slots, ...game.bombs]).then(funcHitPlayerAfterBlast)
+            rc_blast.shoot([...game.slots]).then(funcHitPlayerAfterBlast)
 
             //si aucun mur toucher
             if (!firstWall) {
-                console.log("PAS DE MUR TOUCHER");
+                // console.log("PAS DE MUR TOUCHER");
                 Pblasts.push({
                     sprite: "blast" + axe.toUpperCase(),
                     width: `${(axe !== "x") ? 50 : player.range * Wall.size}px`,
@@ -233,18 +243,13 @@ class Bomb {
             }
 
 
-            {
-                // rajouter Animation destruction block (fait mais pas bon car le gif est synchro avec toute les mur)
-                // pour aussi rajouter destruction des bonus au explosion
-            }
-
-
             //si toucher un mur destructible
             if (firstWall.obj.type === "softwall") {
                 Wall.destroy(firstWall.obj)
                 mn.data.update("blasts")
             }
         }
+
         rc_up.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
         rc_down.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
         rc_left.shoot([...game.slots, ...game.wall_matrix, ...game.bombs, ...Bonus.list]).then(funcHitPlayerWallAndBomb)
@@ -321,7 +326,7 @@ class Player {
     size = 50
     static size = 50
 
-    range = 2
+    range = 1
 
     #moveAsist = {
         x: 0,
@@ -353,7 +358,7 @@ class Player {
         image: "./style/default_user_void.png",
     }
     // #isMoving
-    speed = 3//1.4
+    speed = 1.4
     dead = false
     position = { x: 0, y: 0 }
     get move() {
