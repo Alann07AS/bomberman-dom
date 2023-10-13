@@ -9,6 +9,64 @@ body {
     background-size: 12%;
 }
 
+
+/* UI */
+.ui {
+    z-index: 1;
+    height: 500px;
+    width: 500px;
+    position: absolute;
+    background: rgba(255, 255, 255, 0.696);
+    border-radius: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+.ui.pause {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.slotui {
+    height: 250px;
+    width: 250px;
+    display: grid;
+}
+.bombbag {
+    grid-column: 2;
+    height: 80px;
+    width: auto;
+    box-sizing: border-box;
+}
+.lifediv {
+    grid-column: 2;
+    height: 80px;
+    width: auto;
+    box-sizing: border-box;
+    display: flex;
+}
+.life {
+    box-sizing: border-box;
+    width: 10px;
+    background-image: url("./sprites/heart.png");
+}
+.rangesize {
+    grid-column: 2;
+    height: 80px;
+    width: auto;
+    box-sizing: border-box;
+
+}
+.avatar {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    height: 240px;
+    box-sizing: border-box;
+
+}
+
+
 .logo {
     position: absolute;
     top: 3%;
@@ -74,10 +132,9 @@ body {
     /* transition: 0.1s; */
 }
 
-#game {
-    background-color: aqua;
+/* #game {
 
-}
+} */
 
 /* background */
 .bg {

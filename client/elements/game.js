@@ -9,6 +9,14 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
             {
                 id: "game",
             },
+            //UI
+            mn.element.create(
+                "script",
+                {
+                    src: "./elements/ui.js"
+                }
+            ),
+
             // BACKGROUND
             mn.element.create(
                 "div",
@@ -52,6 +60,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                     },
                 ),
             ),
+
             mn.element.create(
                 "script",
                 {

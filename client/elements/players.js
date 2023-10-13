@@ -21,9 +21,6 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                     class: "slot",
                     // src: player.status.ready?player.info.image:"./style/default_user_void.png",
                     style: `background-image: url("${player.status.ready ? player.info.image : "./style/default_user_void.png"}");translate("${player.position.x}px, ${player.position.y}px")`,
-                    onclick: (e) => {
-                        player.bind(e)
-                    }
                 },
 
             )

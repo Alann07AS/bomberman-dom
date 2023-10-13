@@ -1,4 +1,3 @@
-//https://stackoverflow.com/questions/10175812/how-to-generate-a-self-signed-ssl-certificate-using-openssl
 
 const express = require('express');
 const https = require('https'); // Use the 'https' module
@@ -8,6 +7,7 @@ var fs = require('fs');
 const app = express();
 
 // Load your SSL key and certificate
+//https://stackoverflow.com/questions/10175812/how-to-generate-a-self-signed-ssl-certificate-using-openssl
 var options = {
     key: fs.readFileSync('key.pem'),
     cert: fs.readFileSync('cert.pem')
@@ -29,6 +29,9 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('a user connected');
+    socket.on("", ()=>{
+        
+    })
 });
 
 server.listen(3000, () => {

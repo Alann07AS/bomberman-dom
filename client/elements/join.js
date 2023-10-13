@@ -1,13 +1,39 @@
+
 mn.insert(document.currentScript, (updater, old_element_updater) => {
     mn.data.bind("page_status", updater)
 
     if (data.page_status !== "join") return []
-    const joinServer = (e)=>{
-        if (e.code === "Enter" || e.type === "click") {
+    const joinServer = (e) => {
+        if (e.code === "Enter" || e.type === "click" || e === true) {
             /**@type {?} */
-            var socket = io(mn.id("ip-lan").value);
+            // mn.data.update("sslpopup", _ => mn.id("ip-lan").value)
 
-            socket.on("connect", ()=>{
+            var socket = io(mn.id("ip-lan").value, {
+                reconnection: false,
+            });
+            //handle serveur error conection
+            socket.on("connect_error", (err) => {
+                const height = 700
+                const width = 400
+                const continu = confirm("You need to accept server ssl !")
+                if (!continu) return
+                const windowFeatures = `left=${window.innerWidth / 2},top=${window.innerHeight / 2},width=${width},height=${height}`;
+                const handle = window.open(
+                    mn.id("ip-lan").value,
+                    "window",
+                    windowFeatures,
+                );
+                const check = ()=>{
+                    if (!handle || !handle.closed) {
+                        requestAnimationFrame(check)
+                    } else {
+                        joinServer(true)
+                    }
+                }
+                check()
+            });
+
+            socket.on("connect", () => {
                 console.log(socket.connected);
             })
         }
@@ -67,7 +93,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                 mn.element.create(
                     "input",
                     {
-                        value: "localhost:3000", //temp value
+                        value: "https://192.168.1.52:3000", //temp value
                         placeholder: "xxx.xxx.xxx.xx:xxxxx",
                         autocomplete: "off",
                         id: "ip-lan",
@@ -85,6 +111,6 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                     "Join"
                 )
             ),
-        )
+        ),
     ]
 })

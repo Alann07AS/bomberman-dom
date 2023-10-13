@@ -36,14 +36,14 @@ class Bonus {
     static list = []
     static types = {
         speed: (player) => {
-            player.speed += 1
+            player.speed += 0.3
         },
         bombnb: (player) => {
             player.bombs.push(new Bomb())
             mn.data.update("newbomb")
         },
         range: (player) => {
-            player.range += 0.5
+            player.range += 1
         }
     }
     static typeKeys = Object.keys(Bonus.types)
@@ -58,7 +58,6 @@ class Bonus {
         this.type = Bonus.typeKeys[Math.trunc(Math.random() * Bonus.typeKeys.length)]
         this.position = position
         Bonus.list.push(this)
-        console.log("bonus list:", Bonus.list);
         mn.data.update("bonus")
     }
 
@@ -163,7 +162,6 @@ class Bomb {
         }, this.blastDuration * 1000)
 
         const funcHitPlayerWallAndBomb = ([playersWall, axe, speed]) => {
-            console.log(playersWall.map(b => b instanceof Bonus));
             // get all wall and first wall
             const walls = playersWall.filter(v => v.obj instanceof Wall);
             const firstWall = walls.reduce((previous, curent) => {
@@ -275,7 +273,7 @@ class Bomb {
             y: Math.round((player.position.y / Wall.size)) * Wall.size,
         }
         this.active = true
-        console.log("C'est poser");
+        // console.log("C'est poser");
         this.timeoutId = setTimeout(() => (this.blast()), this.duration * 1000)
         mn.data.update("bombs", b => b)
     }
@@ -323,6 +321,7 @@ class Player {
         this.position = position
     }
 
+    pv = 3
     size = 50
     static size = 50
 
@@ -365,7 +364,6 @@ class Player {
         const th = this
         const b = this.checkBonusColision;
         if (b) {
-            console.log(b);
             b.apply(this)
         }
         return class {
