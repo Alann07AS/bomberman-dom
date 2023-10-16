@@ -286,6 +286,8 @@ class Game {
         this.updateBombsList()
     }
 
+    status = false
+
     slots = [
         new Player(this, "./style/sprites/black.png", { x: Wall.size * 11, y: Wall.size * 11 }),
         new Player(this, "./style/sprites/white.png", { x: Wall.size * 1, y: Wall.size * 1 }),
@@ -551,6 +553,7 @@ class RayCast {
 
 // const rc = new RayCast({x:175, y: 175}, "x", 100, 1)
 const game = new Game()
+data.game = new Game()
 // rc.shoot(game.wall_matrix.flat()).then(objs=>objs.forEach(element => {
 //   element.obj.position = {x:0, y:0}
 //   mn.data.update("wall", w=>w)  

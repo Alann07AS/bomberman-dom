@@ -2,11 +2,27 @@
 
 mn.insert(document.currentScript, (updater, old_updater) => {
 
+    mn.data.bind("game.status", old_updater((oldel) => {
+        oldel[0].classList.toggle("pause", game.status)
+    }))
+
+    mn.data.bind("game.status", old_updater((oldel) => {
+        oldel[0].classList.toggle("pause", game.status)
+    }))
+
+    mn.data.bind("game.status", old_updater((oldel) => {
+        oldel[0].classList.toggle("pause", game.status)
+    }))
+
+    mn.data.bind("game.status", old_updater((oldel) => {
+        oldel[0].classList.toggle("pause", game.status)
+    }))
+
     return [
         mn.element.create(
             "div",
             {
-                class: "ui pause",
+                class: "ui " + (!game.status ? "pause" : ""),
             },
             ...game.slots.map((slot, i) => {
                 const life = new Array(slot.pv)
@@ -30,10 +46,12 @@ mn.insert(document.currentScript, (updater, old_updater) => {
                         {
                             class: "lifediv",
                         },
-                        ...life.map(_=>mn.element.create(
-                            "div",
+                        ...life.map(_ => mn.element.create(
+                            "img",
                             {
-                                class: "life"
+                                style: `width: calc(100% / ${life.length});`,
+                                class: "life",
+                                src: "./style/sprites/heart.png",
                             }
                         ))
                     ),
@@ -42,14 +60,14 @@ mn.insert(document.currentScript, (updater, old_updater) => {
                         {
                             class: "rangesize",
                         },
-                        "" + slot.range
+                        `<p>${slot.range}</p>`
                     ),
                     mn.element.create(
                         "div",
                         {
                             class: "bombbag",
                         },
-                        "" + slot.bombs.length
+                        `<p>${slot.bombs.length}</p>`
                     ),
                 )
             })

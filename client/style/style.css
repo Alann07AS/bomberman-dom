@@ -4,26 +4,39 @@ html {
     padding: 0;
 }
 
+@font-face {
+    font-family: retro_font;
+    src: url(./retro_font.ttf);
+}
+
+
 body {
+    font-family: retro_font;
     background-image: url("./bombs.jpg");
     background-size: 12%;
 }
 
-
 /* UI */
 .ui {
     z-index: 1;
-    height: 500px;
-    width: 500px;
+    height: 1000px;
+    width: 250px;
     position: absolute;
-    background: rgba(255, 255, 255, 0.696);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: 30px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    top: 50%;
+    left: 25%;
+    transition: 0.3s;
+    transform: translate(-30%, -50%) scale(0.65);
 }
+
 .ui.pause {
+    height: 500px;
+    width: 500px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -37,26 +50,39 @@ body {
     grid-column: 2;
     height: 80px;
     width: auto;
-    box-sizing: border-box;
+    background-image: url("./sprites/bombbonus.png");
+    background-position: left;
+    background-repeat: no-repeat;
+    display: flex;
+    padding-left: 90px;
+    align-items: center;
 }
 .lifediv {
     grid-column: 2;
     height: 80px;
-    width: auto;
-    box-sizing: border-box;
+    max-width: 125px;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 .life {
-    box-sizing: border-box;
-    width: 10px;
-    background-image: url("./sprites/heart.png");
+    height: fit-content;
+}
+.ui p {
+    transform: translateX(-50%);
+    font-size: xx-large;
 }
 .rangesize {
     grid-column: 2;
     height: 80px;
     width: auto;
     box-sizing: border-box;
-
+    background-image: url("./sprites/flamebonus.png");
+    background-position: left;
+    background-repeat: no-repeat;
+    display: flex;
+    padding-left: 90px;
+    align-items: center;
 }
 .avatar {
     grid-column: 1;
