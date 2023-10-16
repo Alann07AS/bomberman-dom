@@ -2,7 +2,6 @@
 
 
 mn.insert(document.currentScript, (updater, old_element_updater) => {
-    mn.data.bind("game.status", updater)
     mn.data.bind("slots_change", old_element_updater((/**@type {Array<HTMLElement>}*/old_el) => {
         game.slots.forEach((player, i) => {
             /**@type {HTMLElement} */

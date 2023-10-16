@@ -41,9 +41,11 @@ class Bonus {
         bombnb: (player) => {
             player.bombs.push(new Bomb())
             mn.data.update("newbomb")
+            mn.data.update("update_player", _ => game.slots.findIndex(v => v === player))
         },
         range: (player) => {
             player.range += 1
+            mn.data.update("update_player", _ => game.slots.findIndex(v => v === player))
         }
     }
     static typeKeys = Object.keys(Bonus.types)
@@ -176,7 +178,15 @@ class Bomb {
                     //toucher un joueur
                     if (item.obj instanceof Player) {
                         // console.log("Player hit !", item.obj);
-                        item.obj.dead = true
+                        if (!item.obj.invulnerable) {
+                            item.obj.pv -= 1
+                            mn.data.update("update_player", _ => game.slots.findIndex(v => v === player))
+                        }
+                        item.obj.invulnerable = true
+                        // mn.data.update
+                        setTimeout(()=>{
+                            item.obj.invulnerable = false
+                        }, 2500)
                         continue
                     }
 
@@ -553,7 +563,7 @@ class RayCast {
 
 // const rc = new RayCast({x:175, y: 175}, "x", 100, 1)
 const game = new Game()
-data.game = new Game()
+data.game = game
 // rc.shoot(game.wall_matrix.flat()).then(objs=>objs.forEach(element => {
 //   element.obj.position = {x:0, y:0}
 //   mn.data.update("wall", w=>w)  

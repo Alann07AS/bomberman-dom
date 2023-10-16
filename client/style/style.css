@@ -68,6 +68,10 @@ body {
 .life {
     height: fit-content;
 }
+.deadlife {
+    height: fit-content;    
+    filter: grayscale(60%);
+}
 .ui p {
     transform: translateX(-50%);
     font-size: xx-large;

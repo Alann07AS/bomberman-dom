@@ -17,5 +17,9 @@ function PageStatus(status) {
 }
 
 function _startGame() {
+    console.log(game);
+    console.log(data.game);
     mn.data.update("game.status", _=> true)
+    console.log(game.slots);
+    console.log(data.game);
 }

@@ -3,19 +3,22 @@
 mn.insert(document.currentScript, (updater, old_updater) => {
 
     mn.data.bind("game.status", old_updater((oldel) => {
-        oldel[0].classList.toggle("pause", game.status)
+        oldel[0].classList.toggle("pause", !game.status)
     }))
 
-    mn.data.bind("game.status", old_updater((oldel) => {
-        oldel[0].classList.toggle("pause", game.status)
-    }))
-
-    mn.data.bind("game.status", old_updater((oldel) => {
-        oldel[0].classList.toggle("pause", game.status)
-    }))
-
-    mn.data.bind("game.status", old_updater((oldel) => {
-        oldel[0].classList.toggle("pause", game.status)
+    mn.data.bind("update_player", old_updater((oldel) => {
+        /**@type {HTMLElement} */
+        const parent = oldel[0]
+        const id = data.update_player
+        const player = parent.children[id]
+        const remainlife = player.querySelectorAll(".life")
+        console.log(remainlife.length, game.slots[id].pv);
+        if (remainlife.length != game.slots[id].pv) {
+            remainlife[0].classList.toggle("deadlife", true)
+            remainlife[0].classList.toggle("life", false)
+        }
+        player.querySelector(".rangesize").children[0].textContent = game.slots[id].range
+        player.querySelector(".bombbag").children[0].textContent = game.slots[id].bombs.length
     }))
 
     return [

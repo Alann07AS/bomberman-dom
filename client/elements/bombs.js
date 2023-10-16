@@ -1,7 +1,6 @@
 
 
 mn.insert(document.currentScript, (updater, old_element_updater) => {
-    mn.data.bind("game.status", updater)
     mn.data.bind("newbomb", updater)
     mn.data.bind("bombs", old_element_updater((old_el) => {
         game.slots.forEach((player, pi) => {
@@ -17,7 +16,6 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
         });
 
     }))
-    if (data.game.status) return []
     return [
         ...game.slots.map((player, pi) => {
             return player.bombs.map((bomb, i) => {

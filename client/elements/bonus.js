@@ -2,7 +2,6 @@
 
 mn.insert(document.currentScript, (updater, old_element_updater) => {
     mn.data.bind("bonus", updater)
-    if (data.game.status) return []
     return [
         ...Bonus.list.map(bonus => {
             return mn.element.create(
