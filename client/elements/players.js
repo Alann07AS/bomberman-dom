@@ -8,6 +8,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
             const el = old_el
             el[i].style.backgroundImage = `url("${player.status.ready ? player.info.image : "./style/default_user_void.png"}")`
             el[i].style.transform = `translate(${player.position.x}px, ${player.position.y}px)`
+            el[i].classList.toggle("invinsible", player.invinsible)
             // old_el[0].children[i].src = j.info.image
         })
     }))

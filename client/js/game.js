@@ -178,15 +178,17 @@ class Bomb {
                     //toucher un joueur
                     if (item.obj instanceof Player) {
                         // console.log("Player hit !", item.obj);
-                        if (!item.obj.invulnerable) {
+                        if (!item.obj.invinsible) {
+                            const id = game.slots.findIndex(v => v === item.obj)
                             item.obj.pv -= 1
-                            mn.data.update("update_player", _ => game.slots.findIndex(v => v === player))
+                            item.obj.invinsible = true
+                            setTimeout(()=>{
+                                item.obj.invinsible = false
+                                mn.data.update("slots_change", p => p)
+                            }, 2500)
+                            mn.data.update("slots_change", p => p)
+                            mn.data.update("update_player", _ => id)
                         }
-                        item.obj.invulnerable = true
-                        // mn.data.update
-                        setTimeout(()=>{
-                            item.obj.invulnerable = false
-                        }, 2500)
                         continue
                     }
 
@@ -333,6 +335,7 @@ class Player {
         this.position = position
     }
 
+    invinsible = false
     pv = 3
     size = 50
     static size = 50

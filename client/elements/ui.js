@@ -13,7 +13,7 @@ mn.insert(document.currentScript, (updater, old_updater) => {
         const player = parent.children[id]
         const remainlife = player.querySelectorAll(".life")
         console.log(remainlife.length, game.slots[id].pv);
-        if (remainlife.length != game.slots[id].pv) {
+        if (remainlife[0] && remainlife.length != game.slots[id].pv) {
             remainlife[0].classList.toggle("deadlife", true)
             remainlife[0].classList.toggle("life", false)
         }

@@ -257,3 +257,15 @@ body {
 .bombnb {
     background-image: url("./sprites/bombbonus.png");
 }
+
+.invinsible {
+    animation: invinsible 0.5s infinite;
+}
+@keyframes invinsible {
+    50% {
+        filter: opacity(0.1);
+    }
+    100% {
+        filter: opacity(1);
+    }
+}
