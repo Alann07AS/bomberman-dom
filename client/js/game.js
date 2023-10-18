@@ -82,7 +82,7 @@ class Wall {
     isDestroy = false
     static size = 50
     constructor(val, i_line, i_col) {
-        this.type = (val === 1 ? "hardwall" : (val === 2 && (Math.random() > 0.3)) ? "softwall" : "grass")
+        this.type = (val === 1 ? "hardwall" : ((val === 3) || (val === 2 && (Math.random() > 0.3))) ? "softwall" : "grass")
         this.position = {
             x: Wall.size * i_col,
             y: Wall.size * i_line,
@@ -90,6 +90,7 @@ class Wall {
     }
 
     static destroy(wall) {
+        if (wall.type != "softwall") return
         wall.isDestroy = true
         mn.data.update("walldestroy")
         setTimeout(() => {
@@ -181,13 +182,13 @@ class Bomb {
                         if (!item.obj.invinsible) {
                             const id = game.slots.findIndex(v => v === item.obj)
                             item.obj.pv -= 1
+                            mn.data.update("update_player", _ => id)
                             item.obj.invinsible = true
                             setTimeout(()=>{
                                 item.obj.invinsible = false
                                 mn.data.update("slots_change", p => p)
                             }, 2500)
                             mn.data.update("slots_change", p => p)
-                            mn.data.update("update_player", _ => id)
                         }
                         continue
                     }
@@ -277,16 +278,17 @@ class Bomb {
         mn.data.update("bombs", b => b)
     }
 
-    pose(player) {
+    pose(player, timestamp) {
         this.player = player
         this.active_timestamp = Date.now()
         this.position = {
             x: Math.round((player.position.x / Wall.size)) * Wall.size,
             y: Math.round((player.position.y / Wall.size)) * Wall.size,
+            // regler les bomb time stamp ? normalement c'est fais
         }
         this.active = true
-        // console.log("C'est poser");
-        this.timeoutId = setTimeout(() => (this.blast()), this.duration * 1000)
+        console.log("C'est poser", timestamp, ((this.duration*1000)-(timestamp?this.active_timestamp-timestamp:0)));
+        this.timeoutId = setTimeout(() => (this.blast()), ((this.duration*1000)-(timestamp?this.active_timestamp-timestamp:0)) )
         mn.data.update("bombs", b => b)
     }
 
@@ -301,14 +303,21 @@ class Game {
     status = false
 
     slots = [
-        new Player(this, "./style/sprites/black.png", { x: Wall.size * 11, y: Wall.size * 11 }),
-        new Player(this, "./style/sprites/white.png", { x: Wall.size * 1, y: Wall.size * 1 }),
-        new Player(this, "./style/sprites/red.png", { x: Wall.size * 11, y: Wall.size * 1 }),
-        new Player(this, "./style/sprites/blue.png", { x: Wall.size * 1, y: Wall.size * 11 }),
+        new Player(0, this, "./style/sprites/black.png", { x: Wall.size * 11, y: Wall.size * 11 }),
+        new Player(1, this, "./style/sprites/white.png", { x: Wall.size * 1, y: Wall.size * 1 }),
+        new Player(2, this, "./style/sprites/red.png", { x: Wall.size * 11, y: Wall.size * 1 }),
+        new Player(3, this, "./style/sprites/blue.png", { x: Wall.size * 1, y: Wall.size * 11 }),
     ]
 
-    wall_matrix = [...wall_matrix]
-
+    set wall_matrix (wm) {
+        wall_matrix = wm
+        SetWall_matrix()
+        this.#wall_matrix = wall_matrix 
+    }
+    get wall_matrix () {
+        return this.#wall_matrix
+    }
+    #wall_matrix = [...wall_matrix]
     updateBombsList() {
         this.bombs = this.slots.map(j => j.bombs).flat()
     }
@@ -329,7 +338,8 @@ class Player {
      * @param {string} avatar 
      * @param {Object} position 
      */
-    constructor(game, avatar, position) {
+    constructor(id, game, avatar, position) {
+        this.id = id
         this.game = game
         this.info.image = avatar
         this.position = position
@@ -375,11 +385,20 @@ class Player {
     speed = 1.4
     dead = false
     position = { x: 0, y: 0 }
+    updateposition = (x, y)=>{
+        this.position.x=x
+        this.position.y=y
+    }
     get move() {
         const th = this
         const b = this.checkBonusColision;
         if (b) {
             b.apply(this)
+        }
+        const only = ()=>{
+            if (socket && socket.connected) { // dans le cas d'une partie en ligne  
+                socket.emit("playerpos", th.id, th.position.x, th.position.y)
+            }
         }
         return class {
             static left = () => {
@@ -394,6 +413,7 @@ class Player {
                     th.position.y += ((Math.round((th.position.y / Wall.size)) * Wall.size) - th.position.y) / 10
                     mn.data.update("slots_change", v => v)
                 }
+                only()
             }
             static right = () => {
                 if (th.dead) return
@@ -408,6 +428,7 @@ class Player {
                     // th.position.y = Math.round((th.position.y / Wall.size)) * Wall.size
                     mn.data.update("slots_change", v => v)
                 }
+                only()
             }
             static up = () => {
                 if (th.dead) return
@@ -422,6 +443,7 @@ class Player {
                     th.position.x += ((Math.round((th.position.x / Wall.size)) * Wall.size) - th.position.x) / 10
                     mn.data.update("slots_change", v => v)
                 }
+                only()
             }
             static down = () => {
                 if (th.dead) return
@@ -436,6 +458,7 @@ class Player {
                     // th.position.x = Math.round((th.position.x / Wall.size)) * Wall.size
                     mn.data.update("slots_change", v => v)
                 }
+                only()
             }
         }
     }
@@ -502,11 +525,21 @@ class Player {
         const bomb = Bomb.getFirstFreeBomb(this.bombs)
         if (bomb) {
             bomb.pose(this)
+            if (socket && socket.connected) { //dans le cas d'une partie en ligne
+                socket.emit("bomb", this.id, this.bombs.findIndex(b=>b===bomb), bomb.active_timestamp)
+            }
+            this.game.updateBombsList()
         }
-        this.game.updateBombsList()
-
     }
-
+    poseBombId(id, active_timestamp) {
+        const bomb = this.bombs[id]
+        if (bomb) {
+            setTimeout(()=>{
+                bomb.pose(this, active_timestamp)
+            this.game.updateBombsList()
+            }, 1000)
+        }
+    }
 
 
     /**
@@ -514,11 +547,27 @@ class Player {
      * @param {*} manquedestrucla 
      */
     bind(controleur, manquedestrucla) {
+        if (this.game.status) return //ne rejoint pas si partie demarer
         this.status.ready = true;
-        // this.info.image = "./style/default_user.png"
-        controleur.data = this
-        this.controleur = controleur
+        controleur.data = this;
+        this.controleur = controleur;
         mn.data.update("slots_change")
+        mn.data.update("update_player", _=> this.id)
+        if (socket && socket.connected) { // dans le cas d'une partie en ligne
+            socket.emit("addplayer", this.socketFormat())
+        }
+    }
+    //SOCKET PART
+    socketFormat() {
+        return {
+            id: this.id,
+            position: this.position,
+            status: this.status,
+            range: this.range,
+            // bombs: new Array(this.bombs.length),
+            pv: this.pv,
+            invinsible: this.invinsible,
+        }
     }
 }
 
@@ -566,7 +615,6 @@ class RayCast {
 
 // const rc = new RayCast({x:175, y: 175}, "x", 100, 1)
 const game = new Game()
-data.game = game
 // rc.shoot(game.wall_matrix.flat()).then(objs=>objs.forEach(element => {
 //   element.obj.position = {x:0, y:0}
 //   mn.data.update("wall", w=>w)  

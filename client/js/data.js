@@ -7,6 +7,7 @@ const data = //JSON.parse(localStorage.getItem("data")) ||
     // }
 }
 
+data.game = game
 
 function SaveData() {
     localStorage.setItem("data", JSON.stringify(data))

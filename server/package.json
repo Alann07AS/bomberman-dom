@@ -7,5 +7,11 @@
     "http-proxy": "^1.18.1",
     "socket.io": "^4.7.2",
     "socketio": "^1.0.0"
+  },
+  "scripts": {
+    "start":"nodemon server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

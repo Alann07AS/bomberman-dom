@@ -96,6 +96,10 @@ body {
 
 }
 
+.notready {
+    filter: grayscale(1);
+}
+
 
 .logo {
     position: absolute;

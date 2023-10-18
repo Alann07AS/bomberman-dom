@@ -8,7 +8,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
             /**@type {?} */
             // mn.data.update("sslpopup", _ => mn.id("ip-lan").value)
 
-            var socket = io(mn.id("ip-lan").value, {
+            socket = io(mn.id("ip-lan").value, {
                 reconnection: false,
             });
             //handle serveur error conection
@@ -23,7 +23,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                     "window",
                     windowFeatures,
                 );
-                const check = ()=>{
+                const check = () => {
                     if (!handle || !handle.closed) {
                         requestAnimationFrame(check)
                     } else {
@@ -34,7 +34,55 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
             });
 
             socket.on("connect", () => {
-                console.log(socket.connected);
+                socket.emit("game")
+            })
+
+            const update_ui = (player, id) => {
+                const slot = game.slots[id]
+                slot.status = player.status
+                slot.range = player.range
+                slot.pv = player.pv
+                //bomb a ajouter
+                mn.data.update("update_player", _ => id)
+            }
+            const updatePlayer = (players) => {
+                for (const skey in players) {
+                    const slot = game.slots[skey]
+                    if (slot.controleur) continue
+                    slot.position = players[skey].position
+                    // slot.bombs = players[skey].bombs
+                    update_ui(players[skey], skey)
+                    slot.invinsible = players[skey].invinsible
+                }
+                mn.data.update("slots_change")
+            }
+
+            //update all game
+            socket.on("game", (gameserver) => {
+                game.wall_matrix = gameserver.walls
+                updatePlayer(gameserver.players)
+                PageStatus("game")
+            })
+            socket.on("addplayer", (gameserver) => {
+                updatePlayer(gameserver.players)
+                // PageStatus("game")
+            })
+
+            socket.on("ui", (player, id) => {
+                update_ui(player, id)
+                // PageStatus("game")
+            })
+
+            //update player position
+            socket.on("playerpos", (playerid, x, y) => {
+                game.slots[playerid].position.x = x;
+                game.slots[playerid].position.y = y;
+                mn.data.update("slots_change")
+            })
+
+            //update player pos bomb
+            socket.on("bomb", (playerid, bombid) => {
+                game.slots[playerid].poseBombId(bombid)
             })
         }
     }
@@ -93,7 +141,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                 mn.element.create(
                     "input",
                     {
-                        value: "https://192.168.1.52:3000", //temp value
+                        value: "https://192.168.101.21:3000", //temp value
                         placeholder: "xxx.xxx.xxx.xx:xxxxx",
                         autocomplete: "off",
                         id: "ip-lan",

@@ -11,21 +11,25 @@ mn.insert(document.currentScript, (updater, old_updater) => {
         const parent = oldel[0]
         const id = data.update_player
         const player = parent.children[id]
+        const gslot = game.slots[id];
+        if (socket && socket.connected && gslot.controleur) { // dans le cas d'une partie en ligne
+            socket.emit("ui", gslot.socketFormat(), id)
+        }
+        player.classList.toggle("notready", false);
         const remainlife = player.querySelectorAll(".life")
-        console.log(remainlife.length, game.slots[id].pv);
-        if (remainlife[0] && remainlife.length != game.slots[id].pv) {
+        if (remainlife[0] && remainlife.length != gslot.pv) {
             remainlife[0].classList.toggle("deadlife", true)
             remainlife[0].classList.toggle("life", false)
         }
-        player.querySelector(".rangesize").children[0].textContent = game.slots[id].range
-        player.querySelector(".bombbag").children[0].textContent = game.slots[id].bombs.length
+        player.querySelector(".rangesize").children[0].textContent = gslot.range
+        player.querySelector(".bombbag").children[0].textContent = gslot.bombs.length
     }))
 
     return [
         mn.element.create(
             "div",
             {
-                class: "ui " + (!game.status ? "pause" : ""),
+                class: "ui " //+ (!game.status ? "pause" : ""),
             },
             ...game.slots.map((slot, i) => {
                 const life = new Array(slot.pv)
@@ -35,7 +39,7 @@ mn.insert(document.currentScript, (updater, old_updater) => {
                     "div",
                     {
                         id: "player_" + i,
-                        class: "slotui"
+                        class: "slotui notready"
                     },
                     mn.element.create(
                         "img",
