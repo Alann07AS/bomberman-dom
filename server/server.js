@@ -10,15 +10,16 @@ let wall_matrix = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1],
     [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-    [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
+    [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1],
+    [1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
     [1, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 1],
-    [1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    // [1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
@@ -73,15 +74,20 @@ io.on('connection', (socket) => {
     })
 
     //update ui player
-    socket.on("ui", (player, playerid) => {
-        socket.broadcast.emit("ui", player, playerid) //met a jour chez tout les client
-        game.players[playerid] = player //met a jour sur le serveur
+    socket.on("pv", (pv, playerid) => {
+        socket.broadcast.emit("pv", pv, playerid) //met a jour chez tout les client
+        game.players[playerid].pv = pv //met a jour sur le serveur
     })
 
-    //update bomb player
+    //update bomb player    
     socket.on("bomb", (pid, bid, timestamp) => {
         socket.broadcast.emit("bomb", pid, bid, timestamp) //met a jour chez tout les client
         // game.players[playerid] = player //met a jour sur le serveur
+    })
+
+    //update bomb player    
+    socket.on("bonus", (x, y, type) => {
+        socket.broadcast.emit("bonus", x, y, type) //met a jour chez tout les client
     })
 
 });

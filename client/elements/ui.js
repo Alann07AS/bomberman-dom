@@ -12,9 +12,6 @@ mn.insert(document.currentScript, (updater, old_updater) => {
         const id = data.update_player
         const player = parent.children[id]
         const gslot = game.slots[id];
-        if (socket && socket.connected && gslot.controleur) { // dans le cas d'une partie en ligne
-            socket.emit("ui", gslot.socketFormat(), id)
-        }
         player.classList.toggle("notready", false);
         const remainlife = player.querySelectorAll(".life")
         if (remainlife[0] && remainlife.length != gslot.pv) {

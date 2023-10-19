@@ -68,21 +68,27 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                 // PageStatus("game")
             })
 
-            socket.on("ui", (player, id) => {
-                update_ui(player, id)
-                // PageStatus("game")
+            socket.on("pv", (pv, id) => {
+                game.slots[id].pv = pv;
+                mn.data.update("update_player", _ => id)
             })
 
             //update player position
             socket.on("playerpos", (playerid, x, y) => {
                 game.slots[playerid].position.x = x;
                 game.slots[playerid].position.y = y;
+                game.slots[playerid].move
                 mn.data.update("slots_change")
             })
 
             //update player pos bomb
-            socket.on("bomb", (playerid, bombid) => {
-                game.slots[playerid].poseBombId(bombid)
+            socket.on("bomb", (playerid, bombid, timeStamp) => {
+                game.slots[playerid].poseBombId(bombid, timeStamp)
+            })
+
+            //update player pos bomb
+            socket.on("bonus", (x, y, type) => {
+                new Bonus({x, y}, type, false)
             })
         }
     }
@@ -141,7 +147,7 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
                 mn.element.create(
                     "input",
                     {
-                        value: "https://192.168.101.21:3000", //temp value
+                        value: "https://192.168.101.28:3000", //temp value
                         placeholder: "xxx.xxx.xxx.xx:xxxxx",
                         autocomplete: "off",
                         id: "ip-lan",
