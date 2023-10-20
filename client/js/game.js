@@ -98,6 +98,7 @@ class Wall {
         mn.data.update("walldestroy")
         setTimeout(() => {
             const index = game.wall_matrix.findIndex(w => w.position.x === wall.position.x && w.position.y === wall.position.y)
+            if (index === -1) return
             game.wall_matrix.splice(index, 1)
             mn.data.update("wall")
             if (withBonus) Bonus.random({ ...wall.position })
@@ -136,8 +137,8 @@ class Bomb {
     active_timestamp
     active = false
     position = { x: 0, y: 0 }
-    size = 49
-    static size = 49
+    size = 20
+    static size = 20
 
     static getFirstFreeBomb(bombs) {
         return bombs.find((v) => {
@@ -159,7 +160,7 @@ class Bomb {
         blasts.push(Pblasts)
         let isBlast = true
 
-        // timeout to cancelled blast
+        // timeout to cancelled blast fire element
         setTimeout(() => {
             blasts.splice(blasts.findIndex(v => v === Pblasts), 1);
             isBlast = false
@@ -202,7 +203,7 @@ class Bomb {
 
                     //bombe toucher
                     if (item.obj instanceof Bomb && item.obj !== this && item.obj.active) {
-                        clearTimeout(item.obj.timeoutId)
+                        TimeoutClear(item.obj.timeoutId)
                         item.obj.blast()
                         continue
                     }
@@ -246,7 +247,7 @@ class Bomb {
                 return
             }
 
-            //si toucher un mur dur
+            //si toucher un mur de tout type
             if (!(firstWall.dist[axe] < 50)) {
                 Pblasts.push({
                     sprite: "blast" + axe.toUpperCase(),
@@ -295,7 +296,7 @@ class Bomb {
         }
         this.active = true
         const det = Date.now()
-        this.timeoutId = setTimeout(() => { this.blast(); console.log(Date.now() - det) }, ((this.duration * 1000) - (timestamp ? this.active_timestamp - timestamp : 0)))
+        this.timeoutId = Timeout(() => { this.blast(); console.log(Date.now() - det) }, ((this.duration * 1000) - (timestamp ? this.active_timestamp - timestamp : 0)))
         mn.data.update("bombs", b => b)
     }
 
@@ -413,7 +414,7 @@ class Player {
                 let colistionBomb = th.checkBombColision
                 th.position.x -= th.speed
                 let colistionBomb2 = th.checkBombColision
-                th.moveAsistY = 10
+                th.moveAsistY = 20
                 if (th.checkColision || (!colistionBomb && colistionBomb2)) {
                     th.position.x += th.speed
                 } else {
@@ -427,7 +428,7 @@ class Player {
                 let colistionBomb = th.checkBombColision
                 th.position.x += th.speed
                 let colistionBomb2 = th.checkBombColision
-                th.moveAsistY = 10
+                th.moveAsistY = 20
                 if (th.checkColision || (!colistionBomb && colistionBomb2)) {
                     th.position.x -= th.speed
                 } else {
@@ -442,7 +443,7 @@ class Player {
                 let colistionBomb = th.checkBombColision
                 th.position.y -= th.speed
                 let colistionBomb2 = th.checkBombColision
-                th.moveAsistX = 10
+                th.moveAsistX = 20
                 if (th.checkColision || (!colistionBomb && colistionBomb2)) {
                     th.position.y += th.speed
                 } else {
@@ -457,7 +458,7 @@ class Player {
                 let colistionBomb = th.checkBombColision
                 th.position.y += th.speed
                 let colistionBomb2 = th.checkBombColision
-                th.moveAsistX = 10
+                th.moveAsistX = 20
                 if (th.checkColision || (!colistionBomb && colistionBomb2)) {
                     th.position.y -= th.speed
                 } else {
