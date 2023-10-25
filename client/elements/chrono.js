@@ -1,22 +1,34 @@
 let timer = 0
 let updat
+let id_interval10
+let id_interval20
+
 function Start10() {
+    clearInterval(id_interval20);
+    clearInterval(id_interval10);
     timer = 10
     updat()
-    const id_interval = setInterval(()=>{
+    id_interval10 = setInterval(()=>{
+        console.log("inter10");
         timer--
         updat()
-        if (timer <= 0) {clearInterval(id_interval); if (!(socket && socket.connected)) {_startGame(); console.log("LOCAL GAME");}else{console.log("LAN GAME");}}
+        if (timer <= 0) {clearInterval(id_interval10); if (!(socket && socket.connected)) {_startGame(); console.log("LOCAL GAME");}else{console.log("LAN GAME");}}
     }, 1000)
 }
 function Start20() {
+    if (id_interval20) return
+    clearInterval(id_interval20);
+    clearInterval(id_interval10);
+    timer = 20
     mn.data.update("chrono_" + id, _=> true)
-    timer = 5
     updat()
-    const id_interval = setInterval(()=>{
+    id_interval20 = setInterval(()=>{
         timer--
         updat()
-        if (timer <= 0) {clearInterval(id_interval); Start10()}
+        if (timer <= 0) {
+            clearInterval(id_interval20);
+            Start10()
+        }
     }, 1000)
 }
 
@@ -25,9 +37,6 @@ mn.data.set("chrono_" + id, false)
 mn.insert(document.currentScript, (updater, old_element_updater) => {
     updat = updater
     mn.data.bind("chrono_" + id, updater)
-    mn.data.bind("chrono_" + id, old_element_updater((old_el) => {
-
-    }))
     console.log(mn.data.get("chrono_" + id));
     if (!mn.data.get("chrono_" + id)) return []
     return [

@@ -12,7 +12,7 @@ mn.insert(document.currentScript, (updater, oldEl_updater)=>{
                     mn.element.create(
                         "img",
                         {
-                            src: "./style/sprites/blast.gif",
+                            src: "./style/sprites/blast.gif?" + Date.now(),
                             class: "destroy",
                         }
                     )

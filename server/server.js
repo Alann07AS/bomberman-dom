@@ -125,18 +125,26 @@ server.listen(3000, () => {
     console.log(`listening on https://${Object.values(results)[0][0]}:3000`);
 });
 
+let id_interval10
+let id_interval20
+
 let timer = 0
 function Start10() {
+    clearInterval(id_interval20);
+    clearInterval(id_interval10);
     timer = 10
-    const id_interval = setInterval(()=>{
+    id_interval10 = setInterval(()=>{
         timer--
-        if (timer <= 0) {clearInterval(id_interval); io.emit("start", Date.now() + 1000)}
+        if (timer <= 0) {clearInterval(id_interval10); io.emit("start", Date.now() + 1000)}
     }, 1000)
 }
 function Start20() {
-    timer = 5
-    const id_interval = setInterval(()=>{
+    if (id_interval20) return
+    clearInterval(id_interval20);
+    clearInterval(id_interval10);
+    timer = 20
+    id_interval20 = setInterval(()=>{
         timer--
-        if (timer <= 0) {clearInterval(id_interval); Start10()}
+        if (timer <= 0) {clearInterval(id_interval20); Start10()}
     }, 1000)
 }
