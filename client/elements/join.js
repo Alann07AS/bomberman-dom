@@ -88,7 +88,24 @@ mn.insert(document.currentScript, (updater, old_element_updater) => {
 
             //update player pos bomb
             socket.on("bonus", (x, y, type) => {
-                new Bonus({x, y}, type, false)
+                new Bonus({ x, y }, type, false)
+            })
+
+            //timer
+            socket.on("Start10", () => {
+                Start10()
+            })
+            socket.on("Start20", () => {
+                Start20()
+            })
+
+            socket.on("start", (timestamp) => {
+                console.log(timestamp);
+                async function start() {
+                    while (Date.now()< timestamp) {}
+                    _startGame()
+                }
+                start()
             })
         }
     }

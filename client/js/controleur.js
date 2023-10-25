@@ -239,11 +239,11 @@ class keyBind {
 
 // basique actions
 // const join = Player.move.join //function (data) { console.log(data + "JoinSlot"); } //Player.move.up           //à définir
-const up = (data)=>{if (!data) return; data.move.up()} //function (data) { console.log(data + "up"); } //Player.move.up           //à définir
-const down = (data)=>{if (!data) return; data.move.down()} //function (data) { console.log(data + "down"); } //Player.move.down       //à définir
-const left = (data)=>{if (!data) return; data.move.left()} //function (data) { console.log(data + "left"); } //Player.move.left       //à définir
-const right = (data)=>{if (!data) return; data.move.right()} //function (data) { console.log(data + "right"); } //Player.move.right     //à définir
-const pose = (data)=>{if (!data) return; data.poseBomb()} //function (data) { console.log(data + "pose"); } //Player.move.dropbomb  //à définir    
+const up = (data)=>{if (!data || !data.game.status || data.pv <= 0) return; data.move.up()} //function (data) { console.log(data + "up"); } //Player.move.up           //à définir
+const down = (data)=>{if (!data || !data.game.status || data.pv <= 0) return; data.move.down()} //function (data) { console.log(data + "down"); } //Player.move.down       //à définir
+const left = (data)=>{if (!data || !data.game.status || data.pv <= 0) return; data.move.left()} //function (data) { console.log(data + "left"); } //Player.move.left       //à définir
+const right = (data)=>{if (!data || !data.game.status || data.pv <= 0) return; data.move.right()} //function (data) { console.log(data + "right"); } //Player.move.right     //à définir
+const pose = (data)=>{if (!data || !data.game.status || data.pv <= 0) return; data.poseBomb()} //function (data) { console.log(data + "pose"); } //Player.move.dropbomb  //à définir    
 
 /**@type {Array<Controleur>} */
 const controlors = [];

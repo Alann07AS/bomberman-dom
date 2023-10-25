@@ -295,8 +295,7 @@ class Bomb {
             y: Math.round((player.position.y / Wall.size)) * Wall.size,
         }
         this.active = true
-        const det = Date.now()
-        this.timeoutId = Timeout(() => { this.blast(); console.log(Date.now() - det) }, ((this.duration * 1000) - (timestamp ? this.active_timestamp - timestamp : 0)))
+        this.timeoutId = Timeout(() => { this.blast()}, ((this.duration * 1000) - (timestamp ? this.active_timestamp - timestamp : 0)))
         mn.data.update("bombs", b => b)
     }
 
@@ -561,6 +560,15 @@ class Player {
         mn.data.update("update_player", _ => this.id)
         if (socket && socket.connected) { // dans le cas d'une partie en ligne
             socket.emit("addplayer", this.socketFormat())
+        } else {
+            const nb_ready = this.game.slots.reduce((acc, curent)=> curent.status.ready?acc+1:acc, 0)
+            if (nb_ready >= 2) {
+                if (nb_ready === 4) {
+                    Start10()// 10s
+                } else {
+                    Start20()// 20s
+                }
+            }
         }
     }
     //SOCKET PART

@@ -26,7 +26,7 @@ mn.insert(document.currentScript, (updater, old_updater) => {
         mn.element.create(
             "div",
             {
-                class: "ui " //+ (!game.status ? "pause" : ""),
+                class: "ui " + (!game.status ? "pause" : ""),
             },
             ...game.slots.map((slot, i) => {
                 const life = new Array(slot.pv)

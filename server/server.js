@@ -62,6 +62,16 @@ io.on('connection', (socket) => {
     //un player rejoin un slot
     socket.on("addplayer", (player) => {
         if (game.players.some(p => p.id === player.id)) return
+        const nb_ready = game.players.length+1;//game.players.reduce((acc, curent)=> curent.status.ready?acc+1:acc, 0)
+        if (nb_ready >= 2) {
+            if (nb_ready === 4) {
+                io.emit("Start10")// 10s
+                Start10()
+            } else {
+                io.emit("Start20")// 20s
+                Start20()
+            }
+        }
         player.socketid = socket.id //relit le player au socket id
         game.players.push(player)
         io.emit("addplayer", game)
@@ -114,3 +124,19 @@ console.log(Object.values(results)[0][0]);
 server.listen(3000, () => {
     console.log(`listening on https://${Object.values(results)[0][0]}:3000`);
 });
+
+let timer = 0
+function Start10() {
+    timer = 10
+    const id_interval = setInterval(()=>{
+        timer--
+        if (timer <= 0) {clearInterval(id_interval); io.emit("start", Date.now() + 1000)}
+    }, 1000)
+}
+function Start20() {
+    timer = 5
+    const id_interval = setInterval(()=>{
+        timer--
+        if (timer <= 0) {clearInterval(id_interval); Start10()}
+    }, 1000)
+}
