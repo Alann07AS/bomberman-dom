@@ -30,7 +30,8 @@ body {
     justify-content: center;
     align-items: center;
     top: 50%;
-    left: 25%;
+    /* left: 25%; */
+    left: 5%;
     transition: 0.3s;
     transform: translate(-30%, -50%) scale(0.65);
 }
